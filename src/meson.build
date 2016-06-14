@@ -1,7 +1,9 @@
 saga_sources = [
     'saga.vala',
+    'saga-backend-module.vala',
     'saga-context.vala',
     'saga-error.vala',
+    'saga-file-transfer.vala',
     'saga-job-description.vala',
     'saga-job-service.vala',
     'saga-job-state.vala',

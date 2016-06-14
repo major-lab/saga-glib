@@ -1,5 +1,5 @@
 [Flags]
-enum Saga.Permission
+public enum Saga.Permission
 {
 	NONE  = 0,
 	QUERY = 1,

@@ -2,6 +2,15 @@ project('SAGA-GLib', 'c', 'vala',
         version: '1.0.0',
         meson_version: '>=0.31')
 
+if not meson.is_subproject()
+add_global_arguments(['-Wall',
+                      '-Wno-deprecated-declarations',
+                      '-Wno-implicit-function-declaration',
+                      '-Wno-incompatible-pointer-types',
+                      '-Wno-int-to-pointer-cast',
+                      '-Wno-unused'], language: 'c')
+endif
+
 meson.add_install_script('install.sh')
 
 glib = dependency('glib-2.0')
