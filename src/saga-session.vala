@@ -5,13 +5,8 @@ public class Saga.Session : Saga.Object, GLib.Object
 	public static Session get_default ()
 	{
 		if (_default == null)
-		{
 			_default = new Session ();
-		}
-		else
-		{
-			return _default;
-		}
+		return _default;
 	}
 
 	construct
