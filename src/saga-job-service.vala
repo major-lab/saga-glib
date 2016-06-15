@@ -18,10 +18,14 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 
 		var job_service = GLib.Object.@new (module.job_service_type) as JobService;
 
-		UUID.generate (job_service._id);
 		job_service._session = session;
 
 		return job_service;
+	}
+
+	construct
+	{
+		UUID.generate (_id);
 	}
 
 	private uint8 _id[16];

@@ -25,6 +25,10 @@ public class Saga.Context : Saga.Object, GLib.Object
 	                                    Error.NO_SUCCESS
 	{
 		GLib.Object (context_type: type);
+	}
+
+	construct
+	{
 		UUID.generate (_id);
 	}
 

@@ -1,7 +1,5 @@
 public class Saga.URL : Saga.Object, GLib.Object
 {
-	private uint8 _id[16];
-
 	public string scheme   { get; set; }
 	public string host     { get; set; }
 	public uint16 port     { get; set; }
@@ -13,9 +11,15 @@ public class Saga.URL : Saga.Object, GLib.Object
 	public URL (string url) throws Error.BAD_PARAMETER,
 	                               Error.NO_SUCCESS
 	{
-		UUID.generate (_id);
 		set_string (url);
 	}
+
+	construct
+	{
+		UUID.generate (_id);
+	}
+
+	private uint8 _id[16];
 
 	public string get_id ()
 	{

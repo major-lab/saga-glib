@@ -29,6 +29,11 @@ public class Saga.JobDescription : Saga.Object, GLib.Object
 	public JobDescription () throws Error.NOT_IMPLEMENTED,
 	                                Error.NO_SUCCESS
 	{
+
+	}
+
+	construct
+	{
 		UUID.generate (_id);
 	}
 

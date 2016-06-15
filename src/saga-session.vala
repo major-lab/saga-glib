@@ -1,12 +1,25 @@
 public class Saga.Session : Saga.Object, GLib.Object
 {
-	private uint8 _id[16];
+	private static Session? _default = null;
 
-	private SList<Context> contexts = new SList<Context> ();
+	public static Session get_default ()
+	{
+		if (_default == null)
+		{
+			_default = new Session ();
+		}
+		else
+		{
+			return _default;
+		}
+	}
 
-	public Session (bool @default = true) throws Error.NO_SUCCESS {
+	construct
+	{
 		UUID.generate (_id);
 	}
+
+	private uint8 _id[16];
 
 	public string get_id ()
 	{
@@ -17,6 +30,8 @@ public class Saga.Session : Saga.Object, GLib.Object
 	{
 		throw new Error.DOES_NOT_EXIST ("'Session' objects do not have an attached sessions.");
 	}
+
+	private SList<Context> contexts = new SList<Context> ();
 
 	public void add_context (Context context) throws Error.NO_SUCCESS, Error.TIMEOUT
 	{
