@@ -70,20 +70,24 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 		return create_job (jd);
 	}
 
-	public virtual void run_job (string command_line, string host = "")               throws Error.NOT_IMPLEMENTED,
+	public abstract void run_job (string                 command_line,
+	                              string                 host   = "",
+	                              out GLib.OutputStream? stdin  = null,
+	                              out GLib.InputStream?  stdout = null,
+	                              out GLib.InputStream?  stderr = null)               throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.BAD_PARAMETER,
 	                                                                                         Error.PERMISSION_DENIED,
 	                                                                                         Error.AUTHORIZATION_FAILED,
 	                                                                                         Error.AUTHENTICATION_FAILED,
 	                                                                                         Error.TIMEOUT,
-	                                                                                         Error.NO_SUCCESS
-	{
-		throw new Error.NOT_IMPLEMENTED ("");
-	}
+	                                                                                         Error.NO_SUCCESS;
 
-	public virtual async void run_job_async (string command_line,
-	                                         string host     = "",
-	                                         int    priority = GLib.Priority.DEFAULT) throws Error.NOT_IMPLEMENTED,
+	public virtual async void run_job_async (string                 command_line,
+	                                         string                 host     = "",
+	                                         int                    priority = GLib.Priority.DEFAULT,
+	                                         out GLib.OutputStream? stdin    = null,
+	                                         out GLib.InputStream?  stdout   = null,
+	                                         out GLib.InputStream?  stderr   = null)  throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.BAD_PARAMETER,
 	                                                                                         Error.PERMISSION_DENIED,
 	                                                                                         Error.AUTHORIZATION_FAILED,
@@ -91,7 +95,7 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 	                                                                                         Error.TIMEOUT,
 	                                                                                         Error.NO_SUCCESS
 	{
-		run_job (command_line, host);
+		run_job (command_line, host, out stdin, out stdout, out stderr);
 	}
 
 	public abstract string[] list ()                                                  throws Error.NOT_IMPLEMENTED,
@@ -101,7 +105,7 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 	                                                                                         Error.TIMEOUT,
 	                                                                                         Error.NO_SUCCESS;
 
-	public virtual async string[] list_async ()                                       throws Error.NOT_IMPLEMENTED,
+	public virtual async string[] list_async (int priority = GLib.Priority.DEFAULT)   throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.PERMISSION_DENIED,
 	                                                                                         Error.AUTHORIZATION_FAILED,
 	                                                                                         Error.AUTHENTICATION_FAILED,
@@ -120,7 +124,8 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 	                                                                                         Error.TIMEOUT,
 	                                                                                         Error.NO_SUCCESS;
 
-	public virtual async Job get_job_async (string job_id)                            throws Error.NOT_IMPLEMENTED,
+	public virtual async Job get_job_async (string job_id, int priority = GLib.Priority.DEFAULT)
+	                                                                                  throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.BAD_PARAMETER,
 	                                                                                         Error.DOES_NOT_EXIST,
 	                                                                                         Error.PERMISSION_DENIED,
@@ -139,7 +144,7 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 	                                                                                         Error.TIMEOUT,
 	                                                                                         Error.NO_SUCCESS;
 
-	public virtual async Job get_self_async ()                                        throws Error.NOT_IMPLEMENTED,
+	public virtual async Job get_self_async (int priority = GLib.Priority.DEFAULT)    throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.PERMISSION_DENIED,
 	                                                                                         Error.AUTHORIZATION_FAILED,
 	                                                                                         Error.AUTHENTICATION_FAILED,

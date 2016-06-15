@@ -2,17 +2,17 @@ public abstract class Saga.Job : Saga.Object, Saga.Permissions, Saga.Monitorable
 {
 	// attributes
 	// TODO: check how they are set individually
-	public string             job_id          { get; construct; }
-	public string             service_url     { get; construct; }
-	public string             execution_hosts { get; private set; }
-	public GLib.DateTime      created         { get; private set; }
-	public GLib.DateTime      started         { get; private set; }
-	public GLib.DateTime      finished        { get; private set; }
-	public int                exit_code       { get; private set; }
-	public GLib.ProcessSignal term_sig        { get; private set; }
+	public string             job_id          { get; construct;     }
+	public URL                service_url     { get; construct;     }
+	public string[]           execution_hosts { get; protected set; }
+	public GLib.DateTime      created         { get; protected set; }
+	public GLib.DateTime      started         { get; protected set; }
+	public GLib.DateTime      finished        { get; protected set; }
+	public int                exit_code       { get; protected set; }
+	public GLib.ProcessSignal term_sig        { get; protected set; }
 
 	// metrics
-	public signal void job_state        (string             state);
+	public signal void job_state        (JobState           state);
 	public signal void job_state_detail (string             state_detail);
 	public signal void job_signal       (GLib.ProcessSignal sig);
 	public signal void job_cpu_time     (int                second);
