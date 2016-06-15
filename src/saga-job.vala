@@ -3,7 +3,7 @@ public abstract class Saga.Job : Saga.Object, Saga.Permissions, Saga.Monitorable
 	// attributes
 	// TODO: check how they are set individually
 	public string             job_id          { get; construct; }
-	public string             service_url     { get; private set; }
+	public string             service_url     { get; construct; }
 	public string             execution_hosts { get; private set; }
 	public GLib.DateTime      created         { get; private set; }
 	public GLib.DateTime      started         { get; private set; }

@@ -23,6 +23,9 @@ distinguish the latter. There is no batch operation implemented yet.
 The `Saga.Monitorable` interface has a specific `monitor` to indicate the
 implementation to establish monitoring for all listed metrics.
 
+The `Saga.JobService` has a `get_service_url` method to obtain the passed URL
+from the constructor.
+
 ## Backends
 
 Backends are provided by GModule and dynamically loaded via their appropriate

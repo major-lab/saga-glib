@@ -18,7 +18,8 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 
 		var job_service = GLib.Object.@new (module.job_service_type) as JobService;
 
-		job_service._session = session;
+		job_service._session     = session;
+		job_service._service_url = url;
 
 		return job_service;
 	}
@@ -40,6 +41,13 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 	public Session get_session ()
 	{
 		return _session;
+	}
+
+	private URL _service_url;
+
+	public URL get_service_url ()
+	{
+		return _service_url;
 	}
 
 	public abstract Job create_job (JobDescription jd)                                throws Error.NOT_IMPLEMENTED,
