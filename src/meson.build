@@ -8,6 +8,8 @@ saga_sources = [
     'saga-job-service.vala',
     'saga-job-state.vala',
     'saga-job.vala',
+    'saga-metric.vala',
+    'saga-monitorable.vala',
     'saga-object.vala',
     'saga-permission.vala',
     'saga-permissions.vala',

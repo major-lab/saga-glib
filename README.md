@@ -11,7 +11,7 @@ constructs.
 | -------------------- | -------------------------------------------------------------- |
 | Saga.Attribute       | GObject properties                                             |
 | Saga.Buffer          | GIO primitives such as GBytes                                  |
-| Saga.Monitorable     | GObject signals                                                |
+| Saga.Callback        | GObject signals for callbacks                                  |
 | Saga.Object.clone    | shallow and deep copy are implemented with ownership semantics |
 | Saga.Object.get_type | GType                                                          |
 | Saga.Task            | GTask                                                          |
@@ -19,6 +19,9 @@ constructs.
 
 Both synchronous and asynchronous APIs are provided with the `_async` suffix to
 distinguish the latter. There is no batch operation implemented yet.
+
+The `Saga.Monitorable` interface has a specific `monitor` to indicate the
+implementation to establish monitoring for all listed metrics.
 
 ## Backends
 
