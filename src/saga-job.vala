@@ -1,4 +1,4 @@
-public abstract class Saga.Job : Saga.Object, Saga.Permissions, Saga.Monitorable, GLib.Object
+public abstract class Saga.Job : Saga.Task<int>, Saga.Permissions
 {
 	// attributes
 	// TODO: check how they are set individually
@@ -19,10 +19,6 @@ public abstract class Saga.Job : Saga.Object, Saga.Permissions, Saga.Monitorable
 	public signal void job_memory_use   (float              megabyte);
 	public signal void job_vmemory_use  (float              megabyte);
 	public signal void job_performance  (float              flops);
-
-	public abstract string get_id ();
-
-	public abstract Session get_session () throws Error.DOES_NOT_EXIST;
 
 	public abstract void permissions_allow (string id, Permission perm)               throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.BAD_PARAMETER,
@@ -46,23 +42,6 @@ public abstract class Saga.Job : Saga.Object, Saga.Permissions, Saga.Monitorable
 	                                                                                         Error.AUTHORIZATION_FAILED,
 	                                                                                         Error.AUTHENTICATION_FAILED,
 	                                                                                         Error.TIMEOUT,
-	                                                                                         Error.NO_SUCCESS;
-
-	public abstract string[] list_metrics ()                                          throws Error.NOT_IMPLEMENTED,
-	                                                                                         Error.PERMISSION_DENIED,
-	                                                                                         Error.AUTHORIZATION_FAILED,
-	                                                                                         Error.AUTHENTICATION_FAILED,
-	                                                                                         Error.TIMEOUT,
-	                                                                                         Error.NO_SUCCESS;
-
-	public abstract Metric get_metric (string name)                                   throws Error.NOT_IMPLEMENTED,
-	                                                                                         Error.PERMISSION_DENIED,
-	                                                                                         Error.AUTHORIZATION_FAILED,
-	                                                                                         Error.AUTHENTICATION_FAILED,
-	                                                                                         Error.TIMEOUT,
-	                                                                                         Error.NO_SUCCESS;
-
-	public abstract void monitor ()                                                   throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.NO_SUCCESS;
 
 	public abstract string get_group ()                                               throws Error.NOT_IMPLEMENTED,

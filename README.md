@@ -14,17 +14,21 @@ constructs.
 | Saga.Callback        | GObject signals for callbacks                                  |
 | Saga.Object.clone    | shallow and deep copy are implemented with ownership semantics |
 | Saga.Object.get_type | GType                                                          |
-| Saga.Task            | GTask                                                          |
-| Saga.TaskContainer   | tasks are handled in a GMainLoop                               |
+| Saga.ErrorHandler    | GError                                                         |
 
 Both synchronous and asynchronous APIs are provided with the `_async` suffix to
 distinguish the latter. There is no batch operation implemented yet.
 
-The `Saga.Monitorable` interface has a specific `monitor` to indicate the
-implementation to establish monitoring for all listed metrics.
-
 The `Saga.JobService` has a `get_service_url` method to obtain the passed URL
 from the constructor.
+
+There is no `Task.get_object` or `Task.rethrow` since errors are handled
+directly at the source.
+
+Two implementation of `Saga.TaskContainer` are provided:
+
+ - `Saga.SerialTaskContainer` to perform operations serially
+ - `Saga.ParallelTaskContainer` to perform operations simultaneously
 
 ## Backends
 

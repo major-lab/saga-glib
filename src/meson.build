@@ -14,7 +14,11 @@ saga_sources = [
     'saga-permission.vala',
     'saga-permissions.vala',
     'saga-session.vala',
-    'saga-url.vala']
+    'saga-task.vala',
+    'saga-task-container.vala',
+    'saga-task-state.vala',
+    'saga-url.vala',
+    'saga-wait-mode.vala']
 saga_lib = library('saga-glib-1.0', saga_sources, dependencies: [glib, gobject, gio, gmodule, uuid],
                    vala_args: ['--vapidir=' + meson.current_source_dir() + '/../vapi', '--target-glib=2.40'],
                    link_args: '-Wl,-rpath,' + meson.current_build_dir() + '/backends',
