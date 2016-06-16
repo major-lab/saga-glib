@@ -16,9 +16,9 @@ public abstract class Saga.Job : Saga.Task<int>, Saga.Permissions
 	public signal void job_state_detail (string             state_detail);
 	public signal void job_signal       (GLib.ProcessSignal sig);
 	public signal void job_cpu_time     (int                second);
-	public signal void job_memory_use   (float              megabyte);
-	public signal void job_vmemory_use  (float              megabyte);
-	public signal void job_performance  (float              flops);
+	public signal void job_memory_use   (double             megabyte);
+	public signal void job_vmemory_use  (double             megabyte);
+	public signal void job_performance  (double             flops);
 
 	public abstract void permissions_allow (string id, Permission perm)               throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.BAD_PARAMETER,
