@@ -4,7 +4,10 @@ public abstract class Saga.TaskContainer : Saga.Object, Saga.Monitorable, GLib.O
 
 	public abstract string get_id ();
 
-	public abstract Session get_session ()                                         throws Error.DOES_NOT_EXIST;
+	public Session get_session ()                                                  throws Error.DOES_NOT_EXIST
+	{
+		throw new Error.DOES_NOT_EXIST ("'TaskContainer' objects do not have attached session.");
+	}
 
 	public abstract string[] list_metrics ()                                       throws Error.NOT_IMPLEMENTED,
 	                                                                                      Error.PERMISSION_DENIED,
@@ -44,9 +47,16 @@ public abstract class Saga.TaskContainer : Saga.Object, Saga.Monitorable, GLib.O
 		run ();
 	}
 
-	public abstract void cancel (double timeout = 0.0);
+	public abstract void cancel (double timeout = 0.0)                             throws Error.NOT_IMPLEMENTED,
+	                                                                                      Error.INCORRECT_STATE,
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS;
 
-	public async void cancel_async (double timeout = 0.0, int priority = GLib.Priority.DEFAULT)
+	public virtual async void cancel_async (double timeout = 0.0, int priority = GLib.Priority.DEFAULT)
+	                                                                               throws Error.NOT_IMPLEMENTED,
+	                                                                                      Error.INCORRECT_STATE,
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS
 	{
 		cancel (timeout);
 	}
@@ -67,7 +77,7 @@ public abstract class Saga.TaskContainer : Saga.Object, Saga.Monitorable, GLib.O
 		return wait (mode, timeout);
 	}
 
-	public virtual int size ()                                                     throws Error.NOT_IMPLEMENTED,
+	public virtual uint size ()                                                    throws Error.NOT_IMPLEMENTED,
 	                                                                                      Error.TIMEOUT,
 	                                                                                      Error.NO_SUCCESS
 	{

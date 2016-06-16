@@ -13,6 +13,7 @@ saga_sources = [
     'saga-object.vala',
     'saga-permission.vala',
     'saga-permissions.vala',
+    'saga-serial-task-container.vala',
     'saga-session.vala',
     'saga-task.vala',
     'saga-task-container.vala',
