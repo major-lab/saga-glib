@@ -21,7 +21,7 @@ public class Saga.BackendModule : GLib.TypeModule
 
 	construct
 	{
-		path = GLib.Module.build_path (directory, name);
+		path = GLib.Module.build_path (directory, "saga-glib-%s".printf (name));
 	}
 
 	public override bool load ()

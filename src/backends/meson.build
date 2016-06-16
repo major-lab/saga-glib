@@ -7,7 +7,7 @@ qstat = find_program('qstat')
 qsub = find_program('qsub')
 
 xml = dependency('libxml-2.0')
-shared_library('saga-torque', 'saga-torque.vala',
+shared_library('saga-glib-torque', 'saga-torque.vala',
                dependencies: [glib, gobject, gio, saga, xml, uuid],
                vala_args: ['--target-glib=2.40', '--vapidir=' + meson.current_source_dir () + '/../../vapi'],
                install: true,
