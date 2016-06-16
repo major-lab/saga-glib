@@ -1,4 +1,7 @@
-qmove = find_program('qmove')
+qalter = find_program('qalter')
+qchkpt = find_program('qchkpt')
+qhold = find_program('qhold')
+qrls = find_program('qrls')
 qsig = find_program('qsig')
 qstat = find_program('qstat')
 qsub = find_program('qsub')
