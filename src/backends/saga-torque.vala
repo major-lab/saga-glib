@@ -865,7 +865,7 @@ namespace Saga.TORQUE
 
 					GLib.Process.check_exit_status (qsub.get_exit_status ());
 
-					job = new Job (get_session (), stdout_buf, get_service_url(), jd);
+					job = new Job (get_session (), stdout_buf.chomp (), get_service_url(), jd);
 				}
 
 				// hold the job to prevent its immediate execution (until qrls is called)
