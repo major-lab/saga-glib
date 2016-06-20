@@ -15,7 +15,7 @@ namespace Saga.TORQUE
 	private const string QSTAT  = "qstat";
 	private const string QSUB   = "qsub";
 
-	private string[] qsub_args_from_job_description (JobDescription jd)
+	private string[] qsub_args_from_job_description (JobDescription jd, string executable)
 	{
 		string[] args = {QSUB};
 
@@ -178,7 +178,7 @@ namespace Saga.TORQUE
 			args += string.joinv (",", user_list);
 		}
 
-		args += jd.executable;
+		args += executable;
 
 		return args;
 	}
@@ -800,15 +800,34 @@ namespace Saga.TORQUE
 			}
 		}
 
-		public override Saga.Job create_job (JobDescription jd) throws Error.NO_SUCCESS, Error.NO_SUCCESS
+		public override Saga.Job create_job (JobDescription jd) throws Error.NO_SUCCESS
 		{
 			try
 			{
+				bool uncertain;
+				var content_type = GLib.ContentType.guess (jd.executable, null, out uncertain);
+
+				string executable;
+				string stdin_buf;
+				if (GLib.ContentType.is_a (content_type, "text") && !uncertain) // in doubt, use the wrapper
+				{
+					executable = jd.executable;
+					stdin_buf  = null;
+				}
+				else
+				{
+					// since the executable is not necessairly a bash script, we
+					// create one to wrap an executable properly and pass it through
+					// standard input
+					executable = "-";
+					stdin_buf  = "#!/usr/bin/env bash\n\n%s $@; exit $?".printf (GLib.Shell.quote (jd.executable));
+				}
+
 				// TODO: create a job on hold
-				var qsub = new GLib.Subprocess.newv (qsub_args_from_job_description (jd),
-				                                jd.interactive ? GLib.SubprocessFlags.STDIN_PIPE  |
-				                                                 GLib.SubprocessFlags.STDOUT_PIPE |
-				                                                 GLib.SubprocessFlags.STDERR_PIPE : GLib.SubprocessFlags.STDOUT_PIPE);
+				var qsub = new GLib.Subprocess.newv (qsub_args_from_job_description (jd, stdin_buf),
+				                                     (jd.interactive ? GLib.SubprocessFlags.STDERR_PIPE : GLib.SubprocessFlags.NONE) |
+				                                     GLib.SubprocessFlags.STDIN_PIPE                                                 |
+				                                     GLib.SubprocessFlags.STDOUT_PIPE);
 
 				Job job;
 
@@ -856,7 +875,7 @@ namespace Saga.TORQUE
 				{
 					string stdout_buf;
 					string stderr_buf;
-					qsub.communicate_utf8 (null, null, out stdout_buf, out stderr_buf);
+					qsub.communicate_utf8 (stdin_buf, null, out stdout_buf, out stderr_buf);
 
 					GLib.Process.check_exit_status (qsub.get_exit_status ());
 
