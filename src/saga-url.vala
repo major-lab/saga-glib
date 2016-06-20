@@ -1,15 +1,18 @@
 public class Saga.URL : Saga.Object, GLib.Object
 {
-	public string scheme   { get; set; }
-	public string host     { get; set; }
-	public uint16 port     { get; set; }
-	public string fragment { get; set; }
-	public string path     { get; set; }
-	public string query    { get; set; }
-	public string userinfo { get; set; }
+	private static GLib.Regex url_regex =
+		/^\w+:\/\/((?<userinfo>\w+)@)?(?<host>\w+)(:(?<port>\d+))?(?<path>\/[^?]*)(\?(?<query>[^#]*))?(#(?<fragment>.*))?$/;
 
-	public URL (string url) throws Error.BAD_PARAMETER,
-	                               Error.NO_SUCCESS
+	public string  scheme   { get; set;                 }
+	public string  host     { get; set;                 }
+	public uint?   port     { get; set; default = null; }
+	public string? fragment { get; set; default = null; }
+	public string  path     { get; set;                 }
+	public string? query    { get; set; default = null; }
+	public string? userinfo { get; set; default = null; }
+
+	public URL (string url)                                 throws Error.BAD_PARAMETER,
+	                                                               Error.NO_SUCCESS
 	{
 		set_string (url);
 	}
@@ -26,20 +29,60 @@ public class Saga.URL : Saga.Object, GLib.Object
 		return (string) _id;
 	}
 
-	public Session get_session () throws Error.DOES_NOT_EXIST
+	public Session get_session ()                           throws Error.DOES_NOT_EXIST
 	{
 		throw new Error.DOES_NOT_EXIST ("'URI' objects do not have attached sessions.");
 	}
 
 	public string get_string ()
 	{
-		return "%s://%s@%s:%u%s?%s#%s".printf (scheme, userinfo, host, port, path, query, fragment);
+		var str = new StringBuilder ();
+
+		str.append_printf ("%s://", scheme);
+
+		if (userinfo != null)
+			str.append_printf ("%s@", userinfo);
+
+		str.append (host);
+
+		if (port != null)
+			str.append_printf (":%u", port);
+
+		if (path.has_prefix ("/"))
+		{
+			str.append (path);
+		}
+		else
+		{
+			str.append_printf ("/%s", path);
+		}
+
+		if (query != null)
+			str.append_printf ("?%s", GLib.Uri.escape_string (query));
+
+		if (fragment != null)
+			str.append_printf ("#%s", GLib.Uri.escape_string (fragment));
+
+		return str.str;
 	}
 
-	public void set_string (string url) throws Error.BAD_PARAMETER
+	public void set_string (string url)                     throws Error.BAD_PARAMETER
 	{
-		// TODO
-		scheme = GLib.Uri.parse_scheme (url);
+		GLib.MatchInfo match_info;
+		if (url_regex.match (url, 0, out match_info))
+		{
+			scheme   = GLib.Uri.parse_scheme (url);
+			host     = match_info.fetch_named ("host");
+			port     = (uint) int.parse (match_info.fetch_named ("port"));
+			fragment = GLib.Uri.unescape_string (match_info.fetch_named ("fragment"));
+			path     = GLib.Uri.unescape_string (match_info.fetch_named ("path"));
+			query    = GLib.Uri.unescape_string (match_info.fetch_named ("query"));
+			userinfo = match_info.fetch_named ("userinfo");
+		}
+		else
+		{
+			throw new Error.BAD_PARAMETER ("The specified URL is not valid.");
+		}
 	}
 
 	public string get_escaped ()
@@ -47,10 +90,10 @@ public class Saga.URL : Saga.Object, GLib.Object
 		return GLib.Uri.escape_string (get_string ());
 	}
 
-	public URL translate (Session s, string? scheme = null) throws Error.BAD_PARAMETER,
-	                                                               Error.NO_SUCCESS
+	public URL translate (Session? s, string scheme) throws Error.BAD_PARAMETER,
+	                                                        Error.NO_SUCCESS
 	{
-		// TODO
-		return new URL (get_string ());
+		// TODO: check scheme compatibility with backends
+		return new URL (get_string ().splice (0, this.scheme.length - 1, scheme));
 	}
 }

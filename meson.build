@@ -20,3 +20,4 @@ gmodule = dependency('gmodule-2.0')
 uuid = dependency('uuid')
 
 subdir('src')
+subdir('tests')
