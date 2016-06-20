@@ -15,21 +15,15 @@ namespace Saga.TORQUE
 	private const string QSTAT  = "qstat";
 	private const string QSUB   = "qsub";
 
-	/**
-	 * Generate arguments for 'qsub' and 'qalter'.
-	 *
-	 * @param create only generate options suitable for a migration with 'qalter'
-	 * @param job_id if 'create' is specified, the job identifier
-	 */
-	private string[] args_from_job_description (JobDescription jd, bool create = true, string? job_id = null)
+	private string[] qsub_args_from_job_description (JobDescription jd)
 	{
-		string[] args = {create ? QSUB : QALTER};
+		string[] args = {QSUB};
 
 		// perform manual checkpoints
 		args += "-c";
 		args += "enabled";
 
-		if (create && jd.arguments.length > 0) {
+		if (jd.arguments.length > 0) {
 			args += "-F";
 			string[] arguments = {};
 			foreach (var argument in jd.arguments)
@@ -48,18 +42,16 @@ namespace Saga.TORQUE
 		if (jd.threads_per_process > 1)
 			warning ("TORQUE backend does not support 'threads_per_process'.");
 
-		if (create && jd.environment.length > 0)
+		if (jd.environment.length > 0)
 		{
 			args += "-v";
 			args += string.joinv (",", jd.environment);
 		}
 
-		if (create) {
-			args += "-d";
-			args += jd.working_directory;
-		}
+		args += "-d";
+		args += jd.working_directory;
 
-		if (create && jd.interactive)
+		if (jd.interactive)
 		{
 			args += "-I";
 		}
@@ -159,7 +151,7 @@ namespace Saga.TORQUE
 		if (jd.candidate_hosts.length > 0)
 			warning ("The 'candidate_hosts' option is not implemented and was ignored.");
 
-		if (create && jd.queue != null)
+		if (jd.queue != null)
 		{
 			args += "-q";
 			args += jd.queue;
@@ -186,21 +178,138 @@ namespace Saga.TORQUE
 			args += string.joinv (",", user_list);
 		}
 
-		if (create)
-		{
-			args += jd.executable;
-		}
-		else
-		{
-			args += job_id;
-		}
+		args += jd.executable;
 
 		return args;
 	}
 
-	private string[] qalter_args_from_job_description ()
+	private string[] qalter_args_from_job_description (JobDescription jd, string job_id)
 	{
-		string[] args = {};
+		string[] args = {QALTER};
+
+		var resource_list = new StringBuilder ();
+
+		resource_list.append_printf ("nodes=%d:ppn=%d", jd.total_cpu_count, jd.processes_per_host);
+
+		if (jd.threads_per_process > 1)
+			warning ("TORQUE backend does not support 'threads_per_process'.");
+
+		if (jd.input != null)
+		{
+			warning ("TORQUE backend does not support 'input'.");
+		}
+
+		if (jd.output != null)
+		{
+			args += "-o";
+			args += jd.output;
+		}
+
+		if (jd.error != null)
+		{
+			args += "-e";
+			args += jd.error;
+		}
+
+		string[] stagein  = {};
+		string[] stageout = {};
+
+		foreach (var ft in jd.file_transfer) {
+			switch (ft.operator) {
+				case ">":
+				case ">>":
+					stagein += ft.local_file + ":" + ft.remote_file;
+					break;
+				case "<":
+				case "<<":
+					stageout += ft.local_file + ":" + ft.remote_file;
+					break;
+				default:
+					warning ("Unknown operator '%s' for file transfer, the transfer was ignored.", ft.operator);
+					break;
+			}
+		}
+
+		if (jd.cleanup != null)
+		{
+			if (jd.cleanup)
+			{
+				args += "-k";
+				args += "n";
+			}
+			else
+			{
+				args += "-k";
+				args += "oe";
+			}
+		}
+
+		if (stagein.length > 0)
+		{
+			args += "-W";
+			args += string.joinv (",", stagein);
+		}
+
+		if (stageout.length > 0)
+		{
+			args += "-W";
+			args += string.joinv (",", stageout);
+		}
+
+		if (jd.job_start_time != null)
+		{
+			args += "-a";
+			args += jd.job_start_time.format ("%Y%%m%d%H%M.%S");
+		}
+
+		if (jd.wall_time_limit != null)
+			resource_list.append_printf ("walltime=%d", jd.wall_time_limit);
+
+		if (jd.total_cpu_time != null)
+			resource_list.append_printf ("cput=%d", jd.total_cpu_time);
+
+		if (jd.total_physical_memory != null)
+			resource_list.append_printf ("mem=%dmb", jd.total_physical_memory);
+
+		if (jd.cpu_architecture != null)
+			resource_list.append_printf ("arch=%s", jd.cpu_architecture);
+
+		if (jd.operating_system_type != null)
+			resource_list.append_printf ("opsys=%s", jd.operating_system_type);
+
+		if (resource_list.len > 0)
+		{
+			args += "-l";
+			args += resource_list.str;
+		}
+
+		// TODO: 'candidate_hosts'
+		if (jd.candidate_hosts.length > 0)
+			warning ("The 'candidate_hosts' option is not implemented and was ignored.");
+
+		if (jd.job_project != null)
+		{
+			args += "-N";
+			args += jd.job_project;
+		}
+
+		string[] user_list = {};
+		foreach (var jc in jd.job_contact)
+		{
+			if (jc.scheme == "mailto")
+			{
+				user_list += jc.userinfo + "@" + jc.host;
+			}
+		}
+
+		if (user_list.length > 0)
+		{
+			args += "-M";
+			args += string.joinv (",", user_list);
+		}
+
+		args += job_id;
+
 		return args;
 	}
 
@@ -516,7 +625,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qalter = new GLib.Subprocess.newv (args_from_job_description (jd, false, job_id), GLib.SubprocessFlags.NONE);
+				var qalter = new GLib.Subprocess.newv (qalter_args_from_job_description (jd, job_id), GLib.SubprocessFlags.NONE);
 				qalter.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -530,7 +639,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qalter = new GLib.Subprocess.newv (args_from_job_description (jd, false, job_id), GLib.SubprocessFlags.NONE);
+				var qalter = new GLib.Subprocess.newv (qalter_args_from_job_description (jd, job_id), GLib.SubprocessFlags.NONE);
 				yield qalter.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -701,7 +810,7 @@ namespace Saga.TORQUE
 			try
 			{
 				// TODO: create a job on hold
-				var qsub = new GLib.Subprocess.newv (args_from_job_description (jd, true),
+				var qsub = new GLib.Subprocess.newv (qsub_args_from_job_description (jd),
 				                                jd.interactive ? GLib.SubprocessFlags.STDIN_PIPE  |
 				                                                 GLib.SubprocessFlags.STDOUT_PIPE |
 				                                                 GLib.SubprocessFlags.STDERR_PIPE : GLib.SubprocessFlags.STDOUT_PIPE);
