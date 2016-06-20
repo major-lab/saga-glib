@@ -32,9 +32,25 @@ Two implementation of `Saga.TaskContainer` are provided:
 
 ## Backends
 
-Backends are provided by GModule and dynamically loaded via their appropriate
-module loader (eg. `JobModule`) and stored in `${LIBDIR}/saga-glib-1.0/backends`.
+Backends are dynamically loaded via GModule from `Saga.BackendModule` and
+stored in `${LIBDIR}/saga-glib-1.0/backends`. The module only need to provide
+a `backends_init` symbol which register necessary classes and interfaces and
+return a struct containing `GType` from its specific implementations;
+unsupported features are marked with `GLib.Type.INVALID`.
 
-To determine if a backend a specific feature, the `<feature>_init` symbol is
-lookup up and loaded in the appropriate module.
+```vala
+[ModuleInit]
+public Saga.BackendTypes (GLib.TypeModule type_module)
+{
+    return
+    {
+        typeof (Saga.CustomBackend.JobService),   // job
+        typeof (Saga.CustomBackend.File),         // file
+        typeof (Saga.CustomBackend.LogicalFile),  // replica
+        typeof (Saga.CustomBackend.StreamServer), // stream
+        typeof (Saga.CustomBackend.RPC),          // rpc
+        GLib.Type.INVALID                         // mark unprovided feature
+    };
+}
+```
 

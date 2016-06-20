@@ -8,5 +8,5 @@ namespace Saga
 	 *
 	 * @since 1.0
 	 */
-	public delegate void BackendInitFunc (GLib.TypeModule type_module, out GLib.Type? job_service_type);
+	public delegate BackendTypes BackendInitFunc (GLib.TypeModule type_module);
 }

@@ -1,7 +1,7 @@
 [ModuleInit]
-public Type backend_init (TypeModule type_module)
+public Saga.BackendTypes backend_init (GLib.TypeModule type_module)
 {
-	return typeof (Saga.TORQUE.JobService);
+	return {typeof (Saga.TORQUE.JobService)};
 }
 
 namespace Saga.TORQUE
@@ -198,6 +198,12 @@ namespace Saga.TORQUE
 		return args;
 	}
 
+	private string[] qalter_args_from_job_description ()
+	{
+		string[] args = {};
+		return args;
+	}
+
 	public class Job : Saga.Job
 	{
 		private uint8 _id[16];
@@ -233,8 +239,7 @@ namespace Saga.TORQUE
 			_stderr = stderr;
 		}
 
-		public Job.from_xml_node (Session session, URL service_url, Xml.Node* job) throws Error.NOT_IMPLEMENTED,
-		                                                                                  Error.NO_SUCCESS
+		public Job.from_xml_node (Session session, URL service_url, Xml.Node* job) throws Error
 		{
 			string? job_id      = null;
 			var job_description = new JobDescription ();
@@ -348,158 +353,6 @@ namespace Saga.TORQUE
 			throw new Error.NOT_IMPLEMENTED ("") ;
 		}
 
-		private JobState last_job_state;
-		private string   last_job_state_detail;
-
-		private static double parse_memory_usage (string mu)
-		{
-			if (mu.has_suffix ("tb"))
-			{
-				return 1099511627776 * uint64.parse (mu.slice (0, mu.length - 2));
-			}
-			else if (mu.has_suffix ("gb"))
-			{
-				return 1073741824 * uint64.parse (mu.slice (0, mu.length - 2));
-			}
-			else if (mu.has_suffix ("mb"))
-			{
-				return 1048576 * uint64.parse (mu.slice (0, mu.length - 2));
-			}
-			else if (mu.has_suffix ("kb"))
-			{
-				return 1024 * uint64.parse (mu.slice (0, mu.length - 2));
-			}
-			else if (mu.has_suffix ("b"))
-			{
-				return uint64.parse (mu.slice (0, mu.length - 1));
-			}
-			else
-			{
-				return uint64.parse (mu);
-			}
-		}
-
-		public async void monitor_async (string[] metrics, int priority = GLib.Priority.DEFAULT)
-		{
-			var failures = 0;
-
-			do
-			{
-				string xml;
-				try
-				{
-					var qstat = new Subprocess (SubprocessFlags.STDOUT_PIPE, QSTAT, "-x", job_id);
-					string stdout_buf;
-					string stderr_buf;
-					// TODO: async with callback
-					yield qstat.communicate_utf8_async (null, null, out stdout_buf, out stderr_buf);
-					xml = stdout_buf;
-				}
-				catch (GLib.Error err)
-				{
-					critical (err.message);
-					failures++;
-					if (failures > 10)
-						throw new Error.NO_SUCCESS ("Could not successfully launch 'qstat' ('%d' failures occured).",
-						                            failures);
-					// TODO: exponential backoff
-					// new TimeoutSource ((uint) Math.exp (failures)).set_callback (monitor_async.callback);
-					yield;
-					continue;
-				}
-
-				var doc  = Xml.Parser.parse_doc (xml);
-				var data = doc->get_root_element ();
-
-				if (data->children == null)
-					return;
-
-				var job  = data->children;
-
-				for (var child = job->children; child->next != null; child = child->next)
-				{
-					switch (child->name)
-					{
-						// attributes
-						case "exec_host":
-							execution_hosts = {child->get_content ()};
-							break;
-						case "exit_code":
-							exit_code = int.parse (child->get_content ());
-							break;
-						// metrics
-						case "job_state":
-							if (GLib.strv_contains (metrics, "job.state"))
-							{
-								switch (child->get_content ())
-								{
-									case "C":
-									case "E":
-										if (last_job_state != JobState.DONE)
-										{
-											last_job_state = JobState.DONE;
-											job_state (JobState.DONE);
-										}
-										break;
-									case "H":
-									case "Q":
-										break;
-									case "R":
-										if (last_job_state != JobState.RUNNING)
-										{
-											last_job_state = JobState.RUNNING;
-											job_state (JobState.RUNNING);
-										}
-										break;
-									case "T":
-									case "W":
-										break;
-									case "S":
-										if (last_job_state != JobState.SUSPENDED)
-										{
-											last_job_state = JobState.SUSPENDED;
-											job_state (JobState.SUSPENDED);
-										}
-										break;
-								}
-							}
-							if (GLib.strv_contains (metrics, "job.state_detail") && child->get_content () != last_job_state_detail)
-							{
-								last_job_state_detail = child->get_content ();
-								job_state_detail (child->get_content ());
-							}
-							break;
-						case "resources_used":
-							for (var resource = child->children; resource->next != null; resource = resource->next)
-							{
-								switch (resource->name)
-								{
-									case "mem":
-										if (GLib.strv_contains (metrics, "job.memory_use"))
-										{
-											job_memory_use (parse_memory_usage (resource->get_content ()));
-										}
-										break;
-									case "vmem":
-										if (GLib.strv_contains (metrics, "job.vmemory_use"))
-										{
-											job_vmemory_use (parse_memory_usage (resource->get_content ()));
-										}
-										break;
-								}
-							}
-							break;
-						}
-				}
-
-				// avoid flooding TORQUE
-				// TODO: efficient polling
-				new TimeoutSource (2000).set_callback (monitor_async.callback);
-				yield;
-			}
-			while (true);
-		}
-
 		public override void run ()
 		{
 			// TODO: qrun
@@ -513,13 +366,13 @@ namespace Saga.TORQUE
 		public override void wait (double timeout = 0.0)
 		{}
 
-		public override TaskState get_state ()
+		public override TaskState get_state () throws Error.NOT_IMPLEMENTED
 		{
 			// TODO: qstat
 			throw new Error.NOT_IMPLEMENTED ("");
 		}
 
-		public override int get_result ()
+		public override int get_result () throws Error.NOT_IMPLEMENTED
 		{
 			throw new Error.NOT_IMPLEMENTED ("");
 		}
@@ -585,7 +438,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qhold = new Subprocess (SubprocessFlags.NONE, QHOLD, job_id);
+				var qhold = new GLib.Subprocess (GLib.SubprocessFlags.NONE, QHOLD, job_id);
 				qhold.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -598,7 +451,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qhold = new Subprocess (SubprocessFlags.NONE, QHOLD, job_id);
+				var qhold = new GLib.Subprocess (GLib.SubprocessFlags.NONE, QHOLD, job_id);
 				yield qhold.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -611,7 +464,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qrls = new Subprocess (SubprocessFlags.NONE, QRLS, job_id);
+				var qrls = new GLib.Subprocess (GLib.SubprocessFlags.NONE, QRLS, job_id);
 				qrls.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -624,7 +477,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qrls = new Subprocess (SubprocessFlags.NONE, QRLS, job_id);
+				var qrls = new GLib.Subprocess (GLib.SubprocessFlags.NONE, QRLS, job_id);
 				yield qrls.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -637,7 +490,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qchkpt = new Subprocess (SubprocessFlags.NONE, QCHKPT, job_id);
+				var qchkpt = new GLib.Subprocess (GLib.SubprocessFlags.NONE, QCHKPT, job_id);
 				qchkpt.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -650,7 +503,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qchkpt = new Subprocess (SubprocessFlags.NONE, QCHKPT, job_id);
+				var qchkpt = new GLib.Subprocess (GLib.SubprocessFlags.NONE, QCHKPT, job_id);
 				yield qchkpt.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -663,7 +516,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qalter = new Subprocess.newv (args_from_job_description (jd, false, job_id), SubprocessFlags.NONE);
+				var qalter = new GLib.Subprocess.newv (args_from_job_description (jd, false, job_id), GLib.SubprocessFlags.NONE);
 				qalter.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -677,7 +530,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qalter = new Subprocess.newv (args_from_job_description (jd, false, job_id), SubprocessFlags.NONE);
+				var qalter = new GLib.Subprocess.newv (args_from_job_description (jd, false, job_id), GLib.SubprocessFlags.NONE);
 				yield qalter.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -690,7 +543,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qsig = new Subprocess (SubprocessFlags.NONE, QSIG, "-s", signum.to_string (), job_id);
+				var qsig = new GLib.Subprocess (GLib.SubprocessFlags.NONE, QSIG, "-s", signum.to_string (), job_id);
 				qsig.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -704,7 +557,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qsig = new Subprocess (SubprocessFlags.NONE, QSIG, "-s", signum.to_string (), job_id);
+				var qsig = new GLib.Subprocess (GLib.SubprocessFlags.NONE, QSIG, "-s", signum.to_string (), job_id);
 				yield qsig.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -718,14 +571,129 @@ namespace Saga.TORQUE
 	{
 		private SList<Job> monitored_jobs = new SList<Job> ();
 
-		/**
-		 * Extract the job identifier from the first line of an interactive
-		 * output.
-		 */
-		private static string job_id_from_interactive_stdout_line (string stdout)
+		private JobState last_job_state;
+		private string   last_job_state_detail;
+
+		private static double parse_memory_usage (string mu)
 		{
-			// TODO:
-			return "";
+			if (mu.has_suffix ("tb"))
+			{
+				return 1099511627776 * uint64.parse (mu.slice (0, mu.length - 2));
+			}
+			else if (mu.has_suffix ("gb"))
+			{
+				return 1073741824 * uint64.parse (mu.slice (0, mu.length - 2));
+			}
+			else if (mu.has_suffix ("mb"))
+			{
+				return 1048576 * uint64.parse (mu.slice (0, mu.length - 2));
+			}
+			else if (mu.has_suffix ("kb"))
+			{
+				return 1024 * uint64.parse (mu.slice (0, mu.length - 2));
+			}
+			else if (mu.has_suffix ("b"))
+			{
+				return uint64.parse (mu.slice (0, mu.length - 1));
+			}
+			else
+			{
+				return uint64.parse (mu);
+			}
+		}
+
+		/**
+		 * Update monitored jobs from a 'qstat -x' output.
+		 */
+		private void update_monitored_jobs_from_xml_doc (Xml.Doc* doc)
+		{
+			var data = doc->get_root_element ();
+
+			if (data->children == null)
+				return;
+
+			for (var job = data->children; job->next != null; job = job->next)
+			{
+				// right now, we have to assume that 'Job_Id' is the first child in the XML node
+				// TODO: avoid that assertion
+				assert (job->children->name == "Job_Id");
+				unowned SList<Job> job_node = monitored_jobs.search<string> (job->children->get_content (),
+				                                          (a, b) => { return strcmp (a, b.job_id); });
+
+				if (job_node == null)
+				{
+					continue;
+				}
+
+				var _job = job_node.data;
+
+				for (var child = job->children; child->next != null; child = child->next)
+				{
+					switch (child->name)
+					{
+						// attributes
+						case "exec_host":
+							_job.execution_hosts = {child->get_content ()};
+							break;
+						case "exit_code":
+							_job.exit_code = int.parse (child->get_content ());
+							break;
+						// metrics
+						case "job_state":
+							switch (child->get_content ())
+							{
+								case "C":
+								case "E":
+									if (last_job_state != JobState.DONE)
+									{
+										last_job_state = JobState.DONE;
+										_job.job_state (JobState.DONE);
+									}
+									break;
+								case "H":
+								case "Q":
+									break;
+								case "R":
+									if (last_job_state != JobState.RUNNING)
+									{
+										last_job_state = JobState.RUNNING;
+										_job.job_state (JobState.RUNNING);
+									}
+									break;
+								case "T":
+								case "W":
+									break;
+								case "S":
+									if (last_job_state != JobState.SUSPENDED)
+									{
+										last_job_state = JobState.SUSPENDED;
+										_job.job_state (JobState.SUSPENDED);
+									}
+									break;
+							}
+							if (child->get_content () != last_job_state_detail)
+							{
+								last_job_state_detail = child->get_content ();
+								_job.job_state_detail (child->get_content ());
+							}
+							break;
+						case "resources_used":
+							for (var resource = child->children; resource->next != null; resource = resource->next)
+							{
+								switch (resource->name)
+								{
+									case "mem":
+										_job.job_memory_use (parse_memory_usage (resource->get_content ()));
+										break;
+									case "vmem":
+										_job.job_vmemory_use (parse_memory_usage (resource->get_content ()));
+										break;
+								}
+							}
+							break;
+						}
+				}
+			}
 		}
 
 		public override Saga.Job create_job (JobDescription jd) throws Error.NO_SUCCESS, Error.NO_SUCCESS
@@ -733,10 +701,10 @@ namespace Saga.TORQUE
 			try
 			{
 				// TODO: create a job on hold
-				var qsub = new Subprocess.newv (args_from_job_description (jd, true),
-				                                jd.interactive ? SubprocessFlags.STDIN_PIPE  |
-				                                                 SubprocessFlags.STDOUT_PIPE |
-				                                                 SubprocessFlags.STDERR_PIPE : SubprocessFlags.STDOUT_PIPE);
+				var qsub = new GLib.Subprocess.newv (args_from_job_description (jd, true),
+				                                jd.interactive ? GLib.SubprocessFlags.STDIN_PIPE  |
+				                                                 GLib.SubprocessFlags.STDOUT_PIPE |
+				                                                 GLib.SubprocessFlags.STDERR_PIPE : GLib.SubprocessFlags.STDOUT_PIPE);
 
 				Job job;
 
@@ -744,12 +712,36 @@ namespace Saga.TORQUE
 				{
 					var dis = new DataInputStream (qsub.get_stdout_pipe ());
 
-					var job_id_line = dis.read_line ();
+					// qsub: waiting for job <job_id> to start
+					// qsub: job <job_id> ready
+					//
+					// ------------------------------------------------------
 
-					// TODO: push-back the line into the stream
+					// TODO: extract the job identifier
+					var job_id = dis.read_line ();
+
+					string? line = null;
+					do
+					{
+						line = dis.read_line ();
+					}
+					while (line != "------------------------------------------------------");
+
+					// Job is running on node <server>
+					//   Working directory:  <working_directory>
+					//   TMPDIR:             ... (available space:  ...)
+					// ------------------------------------------------------
+
+					do
+					{
+						line = dis.read_line ();
+					}
+					while (line != "------------------------------------------------------");
+
+					// interactivity starts here
 
 					job = new Job.interactive (get_session (),
-					                           job_id_from_interactive_stdout_line (job_id_line),
+					                           job_id,
 					                           get_service_url (),
 					                           jd,
 					                           qsub.get_stdin_pipe (),
@@ -762,13 +754,17 @@ namespace Saga.TORQUE
 					string stderr_buf;
 					qsub.communicate_utf8 (null, null, out stdout_buf, out stderr_buf);
 
+					GLib.Process.check_exit_status (qsub.get_exit_status ());
+
 					job = new Job (get_session (), stdout_buf, get_service_url(), jd);
 				}
 
 				// hold the job to prevent its immediate execution (until qrls is called)
 				// TODO: check if we can start a job on hold
-				var qhold = new Subprocess (SubprocessFlags.NONE, "qhold", job.job_id);
+				var qhold = new GLib.Subprocess (GLib.SubprocessFlags.NONE, "qhold", job.job_id);
 				qhold.wait_check ();
+
+				monitored_jobs.prepend (job);
 
 				return job;
 			}
@@ -778,8 +774,10 @@ namespace Saga.TORQUE
 			}
 		}
 
-		// TODO: create_job_async
-
+		/**
+		 * TODO: create_job_async
+		 * TODO: virtual?
+		 */
 		public override void run_job (string            command_line,
 		                              string            host   = "",
 		                              out OutputStream? stdin  = null,
@@ -796,9 +794,8 @@ namespace Saga.TORQUE
 		 * Only the 'Job_Id' attribute is considered, so the document should be
 		 * stripped at most.
 		 */
-		public static string[] job_identifiers_from_xml_stdout (string xml)
+		public static string[] job_identifiers_from_xml_doc (Xml.Doc* doc)
 		{
-			var doc  = Xml.Parser.parse_doc (xml);
 			var data = doc->get_root_element ();
 
 			string[] job_identifiers = {};
@@ -822,18 +819,17 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qstat = new Subprocess (SubprocessFlags.STDOUT_PIPE, "qstat", "-x");
+				var qstat = new GLib.Subprocess (GLib.SubprocessFlags.STDOUT_PIPE, "qstat", "-x");
 
 				string stdout_buf;
 				string stderr_buf;
-				if (qstat.communicate_utf8 (null, null, out stdout_buf, out stderr_buf))
-				{
-					return job_identifiers_from_xml_stdout (stdout_buf);
-				}
-				else
-				{
-					throw new Error.NO_SUCCESS ("Could not retreive the job identifiers");
-				}
+				qstat.communicate_utf8 (null, null, out stdout_buf, out stderr_buf);
+
+				GLib.Process.check_exit_status (qstat.get_exit_status ());
+
+				var doc = Xml.Parser.parse_doc (stdout_buf);
+				update_monitored_jobs_from_xml_doc (doc);
+				return job_identifiers_from_xml_doc (doc);
 			}
 			catch (GLib.Error err)
 			{
@@ -845,18 +841,17 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qstat = new Subprocess (SubprocessFlags.STDOUT_PIPE, "qstat", "-x");
+				var qstat = new GLib.Subprocess (GLib.SubprocessFlags.STDOUT_PIPE, "qstat", "-x");
 
 				string stdout_buf;
 				string stderr_buf;
-				if (yield qstat.communicate_utf8_async (null, null, out stdout_buf, out stderr_buf))
-				{
-					return job_identifiers_from_xml_stdout (stdout_buf);
-				}
-				else
-				{
-					throw new Error.NO_SUCCESS ("Could not retreive the job identifiers");
-				}
+				yield qstat.communicate_utf8_async (null, null, out stdout_buf, out stderr_buf);
+
+				GLib.Process.check_exit_status (qstat.get_exit_status ());
+
+				var doc = Xml.Parser.parse_doc (stdout_buf);
+				update_monitored_jobs_from_xml_doc (doc);
+				return job_identifiers_from_xml_doc (doc);
 			}
 			catch (GLib.Error err)
 			{
@@ -864,45 +859,27 @@ namespace Saga.TORQUE
 			}
 		}
 
-		/**
-		 * Extract {@link Job} objects described in 'qstat' XML stdout.
-		 */
-		private SList<Job> jobs_from_xml_stdout (string xml)
-		{
-			var jobs = new SList<Job> ();
-
-			var doc  = Xml.Parser.parse_doc (xml);
-			var data = doc->get_root_element ();
-
-			// traversed in reverse order to perform O(1) insert
-			for (var job = data->last; job->prev != null; job = job->prev)
-			{
-				jobs.prepend (new Job.from_xml_node (get_session (), get_service_url (), job));
-			}
-
-			return jobs;
-		}
-
-		public override Saga.Job get_job (string id) throws Error.NO_SUCCESS
+		public override Saga.Job get_job (string id) throws Error.NO_SUCCESS, Error.DOES_NOT_EXIST
 		{
 			try
 			{
-				var qstat = new Subprocess (SubprocessFlags.STDOUT_PIPE, "qstat", "-x", id);
+				var qstat = new GLib.Subprocess (GLib.SubprocessFlags.STDOUT_PIPE, "qstat", "-x", id);
 
 				string stdout_buf;
 				string stderr_buf;
 				qstat.communicate_utf8 (null, null, out stdout_buf, out stderr_buf);
 
-				// it should be the first one
-				foreach (var job in jobs_from_xml_stdout (stdout_buf))
+				GLib.Process.check_exit_status (qstat.get_exit_status ());
+
+				var doc  = Xml.Parser.parse_doc (stdout_buf);
+				var data = doc->get_root_element ();
+
+				if (data->children == null)
 				{
-					if (job.job_id == id)
-					{
-						return job;
-					}
+					throw new Error.DOES_NOT_EXIST ("Could not fetch the job '%s' from the TORQUE backend.", id);
 				}
 
-				throw new Error.NO_SUCCESS ("Could not fetch the job from the TORQUE backend");
+				return new Job.from_xml_node (get_session (), get_service_url (), data->children);
 			}
 			catch (GLib.Error err)
 			{
@@ -911,26 +888,29 @@ namespace Saga.TORQUE
 		}
 
 		public override async Saga.Job get_job_async (string id, int priority = GLib.Priority.DEFAULT)
-			throws Error.NO_SUCCESS
+			throws Error.NO_SUCCESS, Error.DOES_NOT_EXIST
 		{
 			try
 			{
-				var qstat = new Subprocess (SubprocessFlags.STDOUT_PIPE, "qstat", "-x", id);
+				var qstat = new GLib.Subprocess (GLib.SubprocessFlags.STDOUT_PIPE, "qstat", "-x", id);
 
 				string stdout_buf;
 				string stderr_buf;
 				yield qstat.communicate_utf8_async (null, null, out stdout_buf, out stderr_buf);
 
-				// it should be the first one
-				foreach (var job in jobs_from_xml_stdout (stdout_buf))
+				GLib.Process.check_exit_status (qstat.get_exit_status ());
+
+				var doc  = Xml.Parser.parse_doc (stdout_buf);
+				var data = doc->get_root_element ();
+
+				if (data->children == null)
 				{
-					if (job.job_id == id)
-					{
-						return job;
-					}
+					throw new Error.DOES_NOT_EXIST ("Could not fetch the job '%s' from the TORQUE backend.", id);
 				}
 
-				throw new Error.NO_SUCCESS ("Could not fetch the job from the TORQUE backend");
+				update_monitored_jobs_from_xml_doc (doc);
+
+				return new Job.from_xml_node (get_session (), get_service_url (), data->children);
 			}
 			catch (GLib.Error err)
 			{

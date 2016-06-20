@@ -1,19 +1,81 @@
+/**
+ * @since 1.0
+ */
 public class Saga.BackendModule : GLib.TypeModule
 {
-	public string? directory { construct; get; }
-
-	public string name { construct; get; }
-
-	public string path { construct; get; }
-
-	public GLib.Type? job_service_type { get; private set; default = null; }
+	private static GLib.HashTable<string, BackendModule>? _backends = null;
 
 	/**
-	 * It should be marked as 'protected', but we don't want it exposed in the
-	 * binding as it would require 'gmodule-2.0' publicly.
+	 * Load a {@link Saga.BackendModule} from a name ensuring that a given
+	 * backend is never loaded twice.
+	 *
+	 * if the 'SAGA_GLIB_BACKEND_PATH' environment variable is specified, this
+	 * path will be used instead of system's defaults.
+	 *
+	 * @since 1.0
 	 */
+	public static BackendModule new_for_name (string name) throws Error.NO_SUCCESS
+	{
+		if (_backends == null)
+		{
+			_backends = new GLib.HashTable<string, BackendModule> (str_hash, str_equal);
+		}
+
+		BackendModule module;
+
+		if (name in _backends)
+		{
+			module = _backends[name];
+		}
+		else
+		{
+			module = new BackendModule (Environment.get_variable ("SAGA_GLIB_BACKEND_PATH"), name);
+
+			if (!module.load ())
+			{
+				throw new Error.NO_SUCCESS ("Could not load backend '%s' from '%s'.", name, module.path);
+			}
+
+			_backends[name] = module;
+		}
+
+		return module;
+	}
+
+	/**
+	 * The directory where the backend implementation is to be found, or 'null'
+	 * to use system's defaults.
+	 *
+	 * @since 1.0
+	 */
+	public string? directory { construct; get; }
+
+	/**
+	 * The name of the backend to use.
+	 *
+	 * @since 1.0
+	 */
+	public string name { construct; get; }
+
+	/**
+	 * The computed path used to retreive the shared library.
+	 *
+	 * @since 1.0
+	 */
+	public string path { construct; get; }
+
+	/**
+	 * Struct containing types provided by the backend.
+	 *
+	 * @since 1.0
+	 */
+	public Saga.BackendTypes types { get; private set; }
+
 	private GLib.Module? module = null;
 
+	/**
+	 * @since 1.0
+	 */
 	public BackendModule (string? directory, string name)
 	{
 		GLib.Object (directory: directory, name: name);
@@ -26,7 +88,7 @@ public class Saga.BackendModule : GLib.TypeModule
 
 	public override bool load ()
 	{
-		module = Module.open (path, GLib.ModuleFlags.BIND_LAZY);
+		module = GLib.Module.open (path, GLib.ModuleFlags.BIND_LAZY);
 
 		if (module == null)
 		{
@@ -41,17 +103,20 @@ public class Saga.BackendModule : GLib.TypeModule
 			return false;
 		}
 
-		Type? _job_service_type;
-		((BackendInitFunc) func) (this, out _job_service_type);
-
-		if (_job_service_type.is_a (typeof (JobService)))
-		{
-			job_service_type = _job_service_type;
-		}
-		else
+		if (func == null)
 		{
 			return false;
 		}
+
+		var _types = ((BackendInitFunc) func) (this);
+
+		if (_types.job_service_type != GLib.Type.INVALID &&
+		    !_types.job_service_type.is_a (typeof (JobService)))
+		{
+			return false;
+		}
+
+		types = _types;
 
 		return true;
 	}
