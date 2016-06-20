@@ -60,6 +60,24 @@ public abstract class Saga.Job : Saga.Task<int>, Saga.Permissions
 	                                                                                         Error.TIMEOUT,
 	                                                                                         Error.NO_SUCCESS;
 
+	public override int get_result ()                                                 throws Error.NOT_IMPLEMENTED,
+	                                                                                         Error.INCORRECT_STATE,
+	                                                                                         Error.TIMEOUT,
+	                                                                                         Error.NO_SUCCESS
+	{
+		wait ();
+		return exit_code;
+	}
+
+	public override async int get_result_async (int priority = GLib.Priority.DEFAULT) throws Error.NOT_IMPLEMENTED,
+	                                                                                         Error.INCORRECT_STATE,
+	                                                                                         Error.TIMEOUT,
+	                                                                                         Error.NO_SUCCESS
+	{
+		yield wait_async (priority);
+		return exit_code;
+	}
+
 	public abstract JobDescription get_job_description ()                             throws Error.NOT_IMPLEMENTED,
                                                                                              Error.DOES_NOT_EXIST,
                                                                                              Error.PERMISSION_DENIED,

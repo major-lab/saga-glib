@@ -481,11 +481,6 @@ namespace Saga.TORQUE
 			throw new Error.NOT_IMPLEMENTED ("");
 		}
 
-		public override int get_result () throws Error.NOT_IMPLEMENTED
-		{
-			throw new Error.NOT_IMPLEMENTED ("");
-		}
-
 		public override void permissions_allow (string id, Permission perm) throws Error.NOT_IMPLEMENTED
 		{
 			throw new Error.NOT_IMPLEMENTED ("");
