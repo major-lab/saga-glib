@@ -19,7 +19,7 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 		return {"task_container.state"};
 	}
 
-	public override Metric get_metric (string name)                             throws Error.NOT_IMPLEMENTED
+	public override Metric get_metric (string name)                                     throws Error.NOT_IMPLEMENTED
 	{
 		throw new Error.NOT_IMPLEMENTED ("");
 	}
@@ -34,11 +34,11 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 		_tasks.remove (task);
 	}
 
-	public override void run ()                                                 throws Error.NOT_IMPLEMENTED,
-	                                                                                   Error.INCORRECT_STATE,
-	                                                                                   Error.DOES_NOT_EXIST,
-	                                                                                   Error.TIMEOUT,
-	                                                                                   Error.NO_SUCCESS
+	public override void run ()                                                         throws Error.NOT_IMPLEMENTED,
+	                                                                                           Error.INCORRECT_STATE,
+	                                                                                           Error.DOES_NOT_EXIST,
+	                                                                                           Error.TIMEOUT,
+	                                                                                           Error.NO_SUCCESS
 	{
 		foreach (var task in _tasks)
 		{
@@ -46,11 +46,11 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 		}
 	}
 
-	public override async void run_async (int priority = GLib.Priority.DEFAULT) throws Error.NOT_IMPLEMENTED,
-	                                                                                   Error.INCORRECT_STATE,
-	                                                                                   Error.DOES_NOT_EXIST,
-	                                                                                   Error.TIMEOUT,
-                                                                                       Error.NO_SUCCESS
+	public override async void run_async (int priority = GLib.Priority.DEFAULT)         throws Error.NOT_IMPLEMENTED,
+	                                                                                           Error.INCORRECT_STATE,
+	                                                                                           Error.DOES_NOT_EXIST,
+	                                                                                           Error.TIMEOUT,
+                                                                                               Error.NO_SUCCESS
 	{
 		foreach (var task in _tasks)
 		{
@@ -58,10 +58,10 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 		}
 	}
 
-	public override void cancel (double timeout = 0.0)                          throws Error.NOT_IMPLEMENTED,
-                                                                                       Error.INCORRECT_STATE,
-                                                                                       Error.TIMEOUT,
-                                                                                       Error.NO_SUCCESS
+	public override void cancel (double timeout = 0.0)                                  throws Error.NOT_IMPLEMENTED,
+                                                                                               Error.INCORRECT_STATE,
+                                                                                               Error.TIMEOUT,
+                                                                                               Error.NO_SUCCESS
 	{
 		foreach (var task in _tasks)
 		{
@@ -70,10 +70,10 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 	}
 
 	public override async void cancel_async (double timeout = 0.0, int priority = GLib.Priority.DEFAULT)
-	                                                                            throws Error.NOT_IMPLEMENTED,
-                                                                                       Error.INCORRECT_STATE,
-                                                                                       Error.TIMEOUT,
-                                                                                       Error.NO_SUCCESS
+	                                                                                    throws Error.NOT_IMPLEMENTED,
+                                                                                               Error.INCORRECT_STATE,
+                                                                                               Error.TIMEOUT,
+                                                                                               Error.NO_SUCCESS
 	{
 		foreach (var task in _tasks)
 		{
@@ -81,12 +81,11 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 		}
 	}
 
-	public override Task wait (WaitMode wait_mode = WaitMode.ALL, double timeout = 0.0)
-	                                                                            throws Error.NOT_IMPLEMENTED,
-                                                                                       Error.INCORRECT_STATE,
-                                                                                       Error.DOES_NOT_EXIST,
-                                                                                       Error.TIMEOUT,
-                                                                                       Error.NO_SUCCESS
+	public override Task wait (WaitMode wait_mode = WaitMode.ALL, double timeout = 0.0) throws Error.NOT_IMPLEMENTED,
+                                                                                               Error.INCORRECT_STATE,
+                                                                                               Error.DOES_NOT_EXIST,
+                                                                                               Error.TIMEOUT,
+                                                                                               Error.NO_SUCCESS
 	{
 		if (_tasks == null)
 		{
@@ -104,12 +103,11 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 
 	public override async Task wait_async (WaitMode wait_mode = WaitMode.ALL,
 	                                       double   timeout   = 0.0,
-	                                       int      priority  = GLib.Priority.DEFAULT)
-	                                                                            throws Error.NOT_IMPLEMENTED,
-                                                                                       Error.INCORRECT_STATE,
-                                                                                       Error.DOES_NOT_EXIST,
-                                                                                       Error.TIMEOUT,
-                                                                                       Error.NO_SUCCESS
+	                                       int      priority  = GLib.Priority.DEFAULT)  throws Error.NOT_IMPLEMENTED,
+                                                                                               Error.INCORRECT_STATE,
+                                                                                               Error.DOES_NOT_EXIST,
+                                                                                               Error.TIMEOUT,
+                                                                                               Error.NO_SUCCESS
 	{
 		if (_tasks == null)
 		{

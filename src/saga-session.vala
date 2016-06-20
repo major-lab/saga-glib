@@ -21,7 +21,7 @@ public class Saga.Session : Saga.Object, GLib.Object
 		return (string) _id;
 	}
 
-	public Session get_session () throws Error.DOES_NOT_EXIST
+	public Session get_session ()             throws Error.DOES_NOT_EXIST
 	{
 		throw new Error.DOES_NOT_EXIST ("'Session' objects do not have an attached sessions.");
 	}

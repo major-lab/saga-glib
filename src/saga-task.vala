@@ -52,8 +52,8 @@ public abstract class Saga.Task<T> : Saga.Monitorable, Saga.Object, GLib.Object
                                                                                           Error.TIMEOUT,
                                                                                           Error.NO_SUCCESS;
 
-	public virtual async void wait_async (double timeout = 0.0, int priority = GLib.Priority.DEFAULT)
-	                                                                               throws Error.NOT_IMPLEMENTED,
+	public virtual async void wait_async (double timeout  = 0.0,
+	                                      int    priority = GLib.Priority.DEFAULT) throws Error.NOT_IMPLEMENTED,
                                                                                           Error.INCORRECT_STATE,
                                                                                           Error.TIMEOUT,
                                                                                           Error.NO_SUCCESS
