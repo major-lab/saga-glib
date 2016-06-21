@@ -47,9 +47,12 @@ a `backends_init` symbol which register necessary classes and interfaces and
 return a struct containing `GType` from its specific implementations;
 unsupported features are marked with `GLib.Type.INVALID`.
 
+To load a backend, use `BackendModule.new_for_name`, which is used as well by
+all static helpers (eg. `JobService.@new`).
+
 ```vala
 [ModuleInit]
-public Saga.BackendTypes (GLib.TypeModule type_module)
+public Saga.BackendTypes backend_init (GLib.TypeModule type_module)
 {
     return
     {

@@ -43,6 +43,14 @@ public class Saga.BackendModule : GLib.TypeModule
 	}
 
 	/**
+	 * @since 1.0
+	 */
+	public static BackendModule new_for_url (URL url) throws Error.NO_SUCCESS
+	{
+		return new_for_name (url.scheme);
+	}
+
+	/**
 	 * The directory where the backend implementation is to be found, or 'null'
 	 * to use system's defaults.
 	 *

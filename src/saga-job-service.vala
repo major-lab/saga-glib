@@ -9,7 +9,7 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 	                                                                                        Error.TIMEOUT,
 	                                                                                        Error.NO_SUCCESS
 	{
-		var module = BackendModule.new_for_name (url.scheme);
+		var module = BackendModule.new_for_url (url);
 
 		if (module.types.job_service_type == GLib.Type.INVALID)
 		{
