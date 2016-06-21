@@ -807,6 +807,14 @@ namespace Saga.TORQUE
 				bool uncertain;
 				var content_type = GLib.ContentType.guess (jd.executable, null, out uncertain);
 
+				if (jd.working_directory != null)
+				{
+					if (DirUtils.create_with_parents (jd.working_directory, 0755) == -1)
+					{
+						throw new Error.NO_SUCCESS ("Could not create working directory '%s'.", jd.working_directory);
+					}
+				}
+
 				string executable;
 				string stdin_buf;
 				if (GLib.ContentType.is_a (content_type, "text") && !uncertain) // in doubt, use the wrapper
