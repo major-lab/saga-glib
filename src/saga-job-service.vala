@@ -33,7 +33,9 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 
 	public string get_id ()
 	{
-		return (string) _id;
+		char @out[37];
+		UUID.unparse (_id, @out);
+		return (string) @out;
 	}
 
 	private Session _session;

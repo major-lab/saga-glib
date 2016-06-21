@@ -11,7 +11,9 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 
 	public override string get_id ()
 	{
-		return (string) _id;
+		char @out[37];
+		UUID.unparse (_id, @out);
+		return (string) @out;
 	}
 
 	public override string[] list_metrics ()

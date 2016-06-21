@@ -26,7 +26,9 @@ public class Saga.URL : Saga.Object, GLib.Object
 
 	public string get_id ()
 	{
-		return (string) _id;
+		char @out[37];
+		UUID.unparse (_id, @out);
+		return (string) @out;
 	}
 
 	public Session get_session ()                           throws Error.DOES_NOT_EXIST
