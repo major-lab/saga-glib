@@ -50,7 +50,7 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 		return _service_url;
 	}
 
-	public abstract Job create_job (JobDescription jd)                               throws Error.NOT_IMPLEMENTED,
+	public abstract Job create_job (owned JobDescription jd)                         throws Error.NOT_IMPLEMENTED,
 	                                                                                        Error.BAD_PARAMETER,
 	                                                                                        Error.PERMISSION_DENIED,
 	                                                                                        Error.AUTHORIZATION_FAILED,
@@ -58,7 +58,7 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 	                                                                                        Error.TIMEOUT,
 	                                                                                        Error.NO_SUCCESS;
 
-	public virtual async Job create_job_async (JobDescription jd, int priority = GLib.Priority.DEFAULT)
+	public virtual async Job create_job_async (owned JobDescription jd, int priority = GLib.Priority.DEFAULT)
 	                                                                                 throws Error.NOT_IMPLEMENTED,
 	                                                                                        Error.BAD_PARAMETER,
 	                                                                                        Error.PERMISSION_DENIED,

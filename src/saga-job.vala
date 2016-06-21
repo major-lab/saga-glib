@@ -78,7 +78,7 @@ public abstract class Saga.Job : Saga.Task<int>, Saga.Permissions
 		return exit_code;
 	}
 
-	public abstract JobDescription get_job_description ()                             throws Error.NOT_IMPLEMENTED,
+	public abstract unowned JobDescription get_job_description ()                     throws Error.NOT_IMPLEMENTED,
                                                                                              Error.DOES_NOT_EXIST,
                                                                                              Error.PERMISSION_DENIED,
                                                                                              Error.AUTHORIZATION_FAILED,
@@ -167,7 +167,7 @@ public abstract class Saga.Job : Saga.Task<int>, Saga.Permissions
 		checkpoint ();
 	}
 
-	public abstract void migrate (JobDescription jd)                                  throws Error.NOT_IMPLEMENTED,
+	public abstract void migrate (owned JobDescription jd)                            throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.INCORRECT_STATE,
 	                                                                                         Error.PERMISSION_DENIED,
 	                                                                                         Error.AUTHORIZATION_FAILED,
@@ -175,7 +175,7 @@ public abstract class Saga.Job : Saga.Task<int>, Saga.Permissions
 	                                                                                         Error.TIMEOUT,
 	                                                                                         Error.NO_SUCCESS;
 
-	public virtual async void migrate_async (JobDescription jd, int priority = GLib.Priority.DEFAULT)
+	public virtual async void migrate_async (owned JobDescription jd, int priority = GLib.Priority.DEFAULT)
 	                                                                                  throws Error.NOT_IMPLEMENTED,
 	                                                                                         Error.INCORRECT_STATE,
 	                                                                                         Error.PERMISSION_DENIED,

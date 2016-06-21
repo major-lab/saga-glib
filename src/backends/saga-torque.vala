@@ -506,7 +506,7 @@ namespace Saga.TORQUE
 			throw new Error.NOT_IMPLEMENTED ("");
 		}
 
-		public override JobDescription get_job_description ()
+		public override unowned JobDescription get_job_description ()
 		{
 			return _job_description;
 		}
@@ -616,7 +616,7 @@ namespace Saga.TORQUE
 			}
 		}
 
-		public override void migrate (JobDescription jd) throws Error.NO_SUCCESS
+		public override void migrate (owned JobDescription jd) throws Error.NO_SUCCESS
 		{
 			try
 			{
@@ -629,7 +629,7 @@ namespace Saga.TORQUE
 			}
 		}
 
-		public override async void migrate_async (JobDescription jd, int priority = GLib.Priority.DEFAULT)
+		public override async void migrate_async (owned JobDescription jd, int priority = GLib.Priority.DEFAULT)
 			throws Error.NO_SUCCESS
 		{
 			try
@@ -800,7 +800,7 @@ namespace Saga.TORQUE
 			}
 		}
 
-		public override Saga.Job create_job (JobDescription jd) throws Error.NO_SUCCESS
+		public override Saga.Job create_job (owned JobDescription jd) throws Error.NO_SUCCESS
 		{
 			try
 			{

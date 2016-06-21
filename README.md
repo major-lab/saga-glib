@@ -28,7 +28,16 @@ directly at the source.
 Two implementation of `Saga.TaskContainer` are provided:
 
  - `Saga.SerialTaskContainer` to perform operations serially
- - `Saga.ParallelTaskContainer` to perform operations simultaneously
+ - `Saga.ThreadedTaskContainer` to perform operations simultaneously
+
+## Shallow or deep copies
+
+To avoid messing with `Saga.Object.clone`, shallow and deep copies are
+implemented with ownership semantics.
+
+if a parameter is to be deep copied, it is passed as `owned`.
+
+If a return value is to be deep copied, it is returned as `unowned`.
 
 ## Backends
 
