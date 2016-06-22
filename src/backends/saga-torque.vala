@@ -15,23 +15,13 @@ namespace Saga.TORQUE
 	private const string QSTAT  = "qstat";
 	private const string QSUB   = "qsub";
 
-	private string[] qsub_args_from_job_description (JobDescription jd, string executable)
+	private string[] qsub_args_from_job_description (JobDescription jd) throws Error.NO_SUCCESS
 	{
 		string[] args = {QSUB};
 
 		// perform manual checkpoints
 		args += "-c";
 		args += "enabled";
-
-		if (jd.arguments.length > 0) {
-			args += "-F";
-			string[] arguments = {};
-			foreach (var argument in jd.arguments)
-			{
-				arguments += GLib.Shell.quote (argument);
-			}
-			args += string.joinv (" ", arguments);
-		}
 
 		// TODO: 'spmd_variation'
 
@@ -79,19 +69,35 @@ namespace Saga.TORQUE
 		string[] stageout = {};
 
 		foreach (var ft in jd.file_transfer) {
+			if (!ft.local_file.contains ("@"))
+			{
+				throw new Error.NO_SUCCESS ("Local files must specify a host in the 'local_file@hostname' format.");
+			}
 			switch (ft.operator) {
 				case ">":
 				case ">>":
-					stagein += ft.local_file + ":" + ft.remote_file;
+					stagein += "%s:%s".printf (ft.local_file, ft.remote_file);
 					break;
 				case "<":
 				case "<<":
-					stageout += ft.local_file + ":" + ft.remote_file;
+					stageout += "%s:%s".printf (ft.local_file, ft.remote_file);
 					break;
 				default:
 					warning ("Unknown operator '%s' for file transfer, the transfer was ignored.", ft.operator);
 					break;
 			}
+		}
+
+		if (stagein.length > 0)
+		{
+			args += "-W";
+			args += "stagein=%s".printf (string.joinv (",", stagein));
+		}
+
+		if (stageout.length > 0)
+		{
+			args += "-W";
+			args += "stageout=%s".printf (string.joinv (",", stageout));
 		}
 
 		if (jd.cleanup != null)
@@ -106,18 +112,6 @@ namespace Saga.TORQUE
 				args += "-k";
 				args += "oe";
 			}
-		}
-
-		if (stagein.length > 0)
-		{
-			args += "-W";
-			args += string.joinv (",", stagein);
-		}
-
-		if (stageout.length > 0)
-		{
-			args += "-W";
-			args += string.joinv (",", stageout);
 		}
 
 		if (jd.job_start_time != null)
@@ -178,12 +172,12 @@ namespace Saga.TORQUE
 			args += string.joinv (",", user_list);
 		}
 
-		args += executable;
+		args += "-";
 
 		return args;
 	}
 
-	private string[] qalter_args_from_job_description (JobDescription jd, string job_id)
+	private string[] qalter_args_from_job_description (JobDescription jd, string job_id) throws Error.NO_SUCCESS
 	{
 		string[] args = {QALTER};
 
@@ -215,19 +209,35 @@ namespace Saga.TORQUE
 		string[] stageout = {};
 
 		foreach (var ft in jd.file_transfer) {
+			if (!ft.local_file.contains ("@"))
+			{
+				throw new Error.NO_SUCCESS ("Local files must specify a host in the 'local_file@hostname' format.");
+			}
 			switch (ft.operator) {
 				case ">":
 				case ">>":
-					stagein += ft.local_file + ":" + ft.remote_file;
+					stagein += "%s:%s".printf (ft.local_file, ft.remote_file);
 					break;
 				case "<":
 				case "<<":
-					stageout += ft.local_file + ":" + ft.remote_file;
+					stageout += "%s:%s".printf (ft.local_file, ft.remote_file);
 					break;
 				default:
 					warning ("Unknown operator '%s' for file transfer, the transfer was ignored.", ft.operator);
 					break;
 			}
+		}
+
+		if (stagein.length > 0)
+		{
+			args += "-W";
+			args += "stagein=%s".printf (string.joinv (",", stagein));
+		}
+
+		if (stageout.length > 0)
+		{
+			args += "-W";
+			args += "stageout=%s".printf (string.joinv (",", stageout));
 		}
 
 		if (jd.cleanup != null)
@@ -242,18 +252,6 @@ namespace Saga.TORQUE
 				args += "-k";
 				args += "oe";
 			}
-		}
-
-		if (stagein.length > 0)
-		{
-			args += "-W";
-			args += string.joinv (",", stagein);
-		}
-
-		if (stageout.length > 0)
-		{
-			args += "-W";
-			args += string.joinv (",", stageout);
 		}
 
 		if (jd.job_start_time != null)
@@ -804,9 +802,6 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				bool uncertain;
-				var content_type = GLib.ContentType.guess (jd.executable, null, out uncertain);
-
 				if (jd.working_directory != null)
 				{
 					if (DirUtils.create_with_parents (jd.working_directory, 0755) == -1)
@@ -815,24 +810,13 @@ namespace Saga.TORQUE
 					}
 				}
 
-				string executable;
-				string stdin_buf;
-				if (GLib.ContentType.is_a (content_type, "text") && !uncertain) // in doubt, use the wrapper
-				{
-					executable = jd.executable;
-					stdin_buf  = null;
-				}
-				else
-				{
-					// since the executable is not necessairly a bash script, we
-					// create one to wrap an executable properly and pass it through
-					// standard input
-					executable = "-";
-					stdin_buf  = "#!/usr/bin/env bash\n\n%s $@; exit $?".printf (GLib.Shell.quote (jd.executable));
-				}
+				// TODO: quote arguments properly
+				var stdin_buf = "#!/usr/bin/env bash\n\n%s %s; exit $?".printf (jd.executable, string.joinv (" ", jd.arguments));
+
+				message ("%s < %s", string.joinv (" ", qsub_args_from_job_description (jd)), stdin_buf);
 
 				// TODO: create a job on hold
-				var qsub = new GLib.Subprocess.newv (qsub_args_from_job_description (jd, stdin_buf),
+				var qsub = new GLib.Subprocess.newv (qsub_args_from_job_description (jd),
 				                                     (jd.interactive ? GLib.SubprocessFlags.STDERR_PIPE : GLib.SubprocessFlags.NONE) |
 				                                     GLib.SubprocessFlags.STDIN_PIPE                                                 |
 				                                     GLib.SubprocessFlags.STDOUT_PIPE);
