@@ -72,17 +72,68 @@ public abstract class Saga.JobService : Saga.Object, GLib.Object
 		return create_job (jd);
 	}
 
-	public abstract Job run_job (string                 command_line,
-	                             string                 host   = "",
-	                             out GLib.OutputStream? stdin  = null,
-	                             out GLib.InputStream?  stdout = null,
-	                             out GLib.InputStream?  stderr = null)               throws Error.NOT_IMPLEMENTED,
+	public virtual Job run_job (string                 command_line,
+	                            string                 host   = "",
+	                            out GLib.OutputStream? stdin  = null,
+	                            out GLib.InputStream?  stdout = null,
+	                            out GLib.InputStream?  stderr = null)                throws Error.NOT_IMPLEMENTED,
 	                                                                                        Error.BAD_PARAMETER,
 	                                                                                        Error.PERMISSION_DENIED,
 	                                                                                        Error.AUTHORIZATION_FAILED,
 	                                                                                        Error.AUTHENTICATION_FAILED,
 	                                                                                        Error.TIMEOUT,
-	                                                                                        Error.NO_SUCCESS;
+	                                                                                        Error.NO_SUCCESS
+	{
+		var jd = new JobDescription ();
+
+		jd.interactive = true;
+		jd.queue       = host;
+		jd.executable  = command_line;
+
+		try
+		{
+			string[] arguments;
+			GLib.Shell.parse_argv (command_line, out arguments);
+			jd.arguments = arguments;
+		}
+		catch (GLib.ShellError err)
+		{
+			throw new Error.NO_SUCCESS (err.message);
+		}
+
+		var job = create_job (jd);
+
+		try
+		{
+			stdin  = job.get_stdin ();
+		}
+		catch (Error err)
+		{
+			stdin = null;
+		}
+
+		try
+		{
+			stdout  = job.get_stdout ();
+		}
+		catch (Error err)
+		{
+			stdout = null;
+		}
+
+		try
+		{
+			stderr  = job.get_stderr ();
+		}
+		catch (Error err)
+		{
+			stderr = null;
+		}
+
+		job.run ();
+
+		return job;
+	}
 
 	public virtual async Job run_job_async (string                 command_line,
 	                                        string                 host     = "",

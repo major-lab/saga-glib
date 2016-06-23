@@ -883,45 +883,23 @@ namespace Saga.TORQUE
 		                                  out InputStream?  stderr = null)
 			throws Error
 		{
-			var jd = new JobDescription ();
+			return base.run_job (command_line, host.length > 0 ? "@%s".printf (host): "", out stdin, out stdout, out stderr);
+		}
 
-			jd.interactive = true;
-			jd.executable  = command_line;
-			jd.arguments   = command_line.split (" ");
-			jd.queue       = "@%s".printf (host);
-
-			var job = create_job (jd);
-
-			try
-			{
-				stdin  = job.get_stdin ();
-			}
-			catch (Error err)
-			{
-				stdin = null;
-			}
-
-			try
-			{
-				stdout  = job.get_stdout ();
-			}
-			catch (Error err)
-			{
-				stdout = null;
-			}
-
-			try
-			{
-				stderr  = job.get_stderr ();
-			}
-			catch (Error err)
-			{
-				stderr = null;
-			}
-
-			job.run ();
-
-			return job;
+		public override async Saga.Job run_job_async (string            command_line,
+		                                              string            host     = "",
+		                                              int               priority = GLib.Priority.DEFAULT,
+		                                              out OutputStream? stdin    = null,
+		                                              out InputStream?  stdout   = null,
+		                                              out InputStream?  stderr   = null)
+			throws Error
+		{
+			return yield base.run_job_async (command_line,
+			                                 host.length > 0 ? "@%s".printf (host) : "",
+			                                 priority,
+			                                 out stdin,
+			                                 out stdout,
+			                                 out stderr);
 		}
 
 		// TODO: 'run_job_async'
