@@ -889,19 +889,55 @@ namespace Saga.TORQUE
 			}
 		}
 
-		/**
-		 * TODO: create_job_async
-		 * TODO: virtual?
-		 */
-		public override void run_job (string            command_line,
-		                              string            host   = "",
-		                              out OutputStream? stdin  = null,
-		                              out InputStream?  stdout = null,
-		                              out InputStream?  stderr = null)
-			throws Error.NO_SUCCESS
+		public override Saga.Job run_job (string            command_line,
+		                                  string            host   = "",
+		                                  out OutputStream? stdin  = null,
+		                                  out InputStream?  stdout = null,
+		                                  out InputStream?  stderr = null)
+			throws Error
 		{
-			throw new Error.NO_SUCCESS ("");
+			var jd = new JobDescription ();
+
+			jd.interactive = true;
+			jd.executable  = command_line;
+			jd.arguments   = command_line.split (" ");
+			jd.queue       = "@%s".printf (host);
+
+			var job = create_job (jd);
+
+			try
+			{
+				stdin  = job.get_stdin ();
+			}
+			catch (Error err)
+			{
+				stdin = null;
+			}
+
+			try
+			{
+				stdout  = job.get_stdout ();
+			}
+			catch (Error err)
+			{
+				stdout = null;
+			}
+
+			try
+			{
+				stderr  = job.get_stderr ();
+			}
+			catch (Error err)
+			{
+				stderr = null;
+			}
+
+			job.run ();
+
+			return job;
 		}
+
+		// TODO: 'run_job_async'
 
 		/**
 		 * Extract job identifiers from a XML stdout.
