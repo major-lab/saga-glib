@@ -360,21 +360,6 @@ namespace Saga.TORQUE
 					case "Job_Id":
 						job_id = child->get_content ();
 						break;
-					case "submit_args":
-						string[] arguments = {};
-						foreach (var argument in child->get_content ().split (" "))
-						{
-							try
-							{
-								arguments += GLib.Shell.unquote (argument);
-							}
-							catch (ShellError err)
-							{
-								throw new Error.NO_SUCCESS (err.message);
-							}
-						}
-						job_description.arguments = arguments;
-						break;
 					case "Resource_List":
 						for (var resource = child->children; resource->next != null; resource = resource->next)
 						{
