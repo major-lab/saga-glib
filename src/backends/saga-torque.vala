@@ -15,6 +15,8 @@ namespace Saga.TORQUE
 	private const string QSTAT  = "qstat";
 	private const string QSUB   = "qsub";
 
+	private const string SH     = "/usr/bin/sh";
+
 	private string[] qsub_args_from_job_description (JobDescription jd) throws Error.NO_SUCCESS
 	{
 		string[] args = {QSUB};
@@ -811,7 +813,7 @@ namespace Saga.TORQUE
 				}
 
 				// TODO: quote arguments properly
-				var stdin_buf = "#!/usr/bin/env bash\n\n%s %s; exit $?".printf (jd.executable, string.joinv (" ", jd.arguments));
+				var stdin_buf = "#!%s\n\n%s %s; exit $?".printf (SH, jd.executable, string.joinv (" ", jd.arguments));
 
 				message ("%s < %s", string.joinv (" ", qsub_args_from_job_description (jd)), stdin_buf);
 

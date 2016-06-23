@@ -5,6 +5,7 @@ qrls = find_program('qrls')
 qsig = find_program('qsig')
 qstat = find_program('qstat')
 qsub = find_program('qsub')
+sh = find_program('sh')
 
 xml = dependency('libxml-2.0')
 shared_library('saga-glib-torque', 'saga-torque.vala',
