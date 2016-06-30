@@ -1,4 +1,4 @@
-public abstract class Saga.JobService : Saga.Object, GLib.Object
+public abstract class Saga.JobService : GLib.Object, Saga.Object
 {
 	public static new JobService @new (Session session, URL url)                     throws Error.NOT_IMPLEMENTED,
 	                                                                                        Error.BAD_PARAMETER,

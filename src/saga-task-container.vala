@@ -1,4 +1,4 @@
-public abstract class Saga.TaskContainer : Saga.Object, Saga.Monitorable, GLib.Object
+public abstract class Saga.TaskContainer : GLib.Object, Saga.Object, Saga.Monitorable
 {
 	public signal void task_container_state (string task_id);
 

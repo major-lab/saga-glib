@@ -1,4 +1,4 @@
-public abstract class Saga.Task<T> : Saga.Monitorable, Saga.Object, GLib.Object
+public abstract class Saga.Task<T> : GLib.Object, Saga.Object, Saga.Monitorable
 {
 	public signal void task_state (TaskState state);
 

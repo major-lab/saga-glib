@@ -1,4 +1,4 @@
-public class Saga.Session : Saga.Object, GLib.Object
+public class Saga.Session : GLib.Object, Saga.Object
 {
 	private static Session? _default = null;
 

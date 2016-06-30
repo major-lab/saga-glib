@@ -1,4 +1,4 @@
-public class Saga.Context : Saga.Object, GLib.Object
+public class Saga.Context : GLib.Object, Saga.Object
 {
 	private uint8 _id[16];
 

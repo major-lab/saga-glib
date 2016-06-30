@@ -1,4 +1,4 @@
-public class Saga.JobDescription : Saga.Object, GLib.Object
+public class Saga.JobDescription : GLib.Object, Saga.Object
 {
 	public string          executable            { get; construct set; default = "";    }
 	public string[]        arguments             { get; construct set; default = {};    }
