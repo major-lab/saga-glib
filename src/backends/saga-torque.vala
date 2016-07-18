@@ -348,61 +348,61 @@ namespace Saga.TORQUE
 			_stderr = stderr;
 		}
 
-		public Job.from_xml_node (Session session, URL service_url, Xml.Node* job) throws Error
+		public Job.from_gxml_node (Session session, URL service_url, GXml.Node job) throws Error
 		{
 			string? job_id      = null;
 			var job_description = new JobDescription ();
 
-			for (var child = job->children; child->next != null; child = child->next)
+			foreach (var child in job.children)
 			{
-				switch (child->name)
+				switch (child.name)
 				{
 					case "Job_Id":
-						job_id = child->get_content ();
+						job_id = child.@value;
 						break;
 					case "Resource_List":
-						for (var resource = child->children; resource->next != null; resource = resource->next)
+						foreach (var resource in child.children)
 						{
-							switch (resource->name)
+							switch (resource.name)
 							{
 								case "nodect":
-									job_description.total_cpu_count = int.parse (resource->get_content ());
+									job_description.total_cpu_count = int.parse (resource.@value);
 									break;
 								case "nodes":
 									// TODO: happy parsing..
-									foreach (var node in resource->get_content ().split ("+"))
+									foreach (var node in resource.@value.split ("+"))
 									{
 
 									}
 									break;
 								case "walltime":
-									job_description.wall_time_limit = int.parse (resource->get_content ());
+									job_description.wall_time_limit = int.parse (resource.@value);
 									break;
 							}
 						}
 						break;
 					case "Output_Path":
-						job_description.output = child->get_content ();
+						job_description.output = child.@value;
 						break;
 					case "Error_Path":
-						job_description.error = child->get_content ();
+						job_description.error = child.@value;
 						break;
 					case "Keep_Files":
-						job_description.cleanup = child->get_content () == "n";
+						job_description.cleanup = child.@value == "n";
 						break;
 					case "start_time":
 						// TODO: check local vs UTC
-						job_description.job_start_time = new GLib.DateTime.from_unix_local (int.parse (child->get_content ()));
+						job_description.job_start_time = new GLib.DateTime.from_unix_local (int.parse (child.@value));
 						break;
 					case "queue":
-						job_description.queue = child->get_content ();
+						job_description.queue = child.@value;
 						break;
 					case "Job_Name":
-						job_description.job_project = child->get_content ();
+						job_description.job_project = child.@value;
 						break;
 					case "Mail_Users":
 						URL[] job_contact = {};
-						foreach (var mail_user in child->get_content ().split (","))
+						foreach (var mail_user in child.@value.split (","))
 						{
 							job_contact += new URL ("mailto:%s".printf (mail_user));
 						}
@@ -694,19 +694,17 @@ namespace Saga.TORQUE
 		/**
 		 * Update monitored jobs from a 'qstat -x' output.
 		 */
-		private void update_monitored_jobs_from_xml_doc (Xml.Doc* doc)
+		private void update_monitored_jobs_from_gxml_doc (GXml.GDocument doc)
 		{
-			var data = doc->get_root_element ();
-
-			if (data->children == null)
+			if (doc.children.is_empty)
 				return;
 
-			for (var job = data->children; job->next != null; job = job->next)
+			foreach (var job in doc.children)
 			{
 				// right now, we have to assume that 'Job_Id' is the first child in the XML node
 				// TODO: avoid that assertion
-				assert (job->children->name == "Job_Id");
-				unowned SList<Job> job_node = monitored_jobs.search<string> (job->children->get_content (),
+				assert (job.children.first ().name == "Job_Id");
+				unowned SList<Job> job_node = monitored_jobs.search<string> (job.children.first ().@value,
 				                                          (a, b) => { return strcmp (a, b.job_id); });
 
 				if (job_node == null)
@@ -716,66 +714,69 @@ namespace Saga.TORQUE
 
 				var _job = job_node.data;
 
-				for (var child = job->children; child->next != null; child = child->next)
+				foreach (var child in job.children)
 				{
-					switch (child->name)
+					switch (child.name)
 					{
 						// attributes
 						case "exec_host":
-							_job.execution_hosts = {child->get_content ()};
+							_job.execution_hosts = {child.@value};
 							break;
 						case "exit_code":
-							_job.exit_code = int.parse (child->get_content ());
+							_job.exit_code = int.parse (child.@value);
 							break;
 						// metrics
 						case "job_state":
-							switch (child->get_content ())
+							JobState current_job_state;
+							switch (child.@value)
 							{
 								case "C":
 								case "E":
-									if (last_job_state != JobState.DONE)
-									{
-										last_job_state = JobState.DONE;
-										_job.job_state (JobState.DONE);
-									}
+									current_job_state = JobState.DONE;
 									break;
 								case "H":
+									current_job_state = JobState.NEW;
+									break;
 								case "Q":
+									current_job_state = JobState.NEW;
 									break;
 								case "R":
-									if (last_job_state != JobState.RUNNING)
-									{
-										last_job_state = JobState.RUNNING;
-										_job.job_state (JobState.RUNNING);
-									}
+									current_job_state = JobState.RUNNING;
 									break;
 								case "T":
+									current_job_state = JobState.NEW;
+									break;
 								case "W":
+									current_job_state = JobState.SUSPENDED;
 									break;
 								case "S":
-									if (last_job_state != JobState.SUSPENDED)
-									{
-										last_job_state = JobState.SUSPENDED;
-										_job.job_state (JobState.SUSPENDED);
-									}
+									current_job_state = JobState.SUSPENDED;
 									break;
+								default:
+									warning ("Unexpected value '%s' for 'job_state' in 'qstat' output.", child.@value);
+									continue;
 							}
-							if (child->get_content () != last_job_state_detail)
+							if (_job.last_job_state != current_job_state)
 							{
-								last_job_state_detail = child->get_content ();
-								_job.job_state_detail (child->get_content ());
+								_job.last_job_state = current_job_state;
+								_job.job_state (current_job_state);
+							}
+							if (child.@value != _job.last_job_state_detail)
+							{
+								_job.last_job_state_detail = child.@value;
+								_job.job_state_detail (child.@value);
 							}
 							break;
 						case "resources_used":
-							for (var resource = child->children; resource->next != null; resource = resource->next)
+							foreach (var resource in child.children)
 							{
-								switch (resource->name)
+								switch (resource.name)
 								{
 									case "mem":
-										_job.job_memory_use (parse_memory_usage (resource->get_content ()));
+										_job.job_memory_use (parse_size_literal (resource.@value));
 										break;
 									case "vmem":
-										_job.job_vmemory_use (parse_memory_usage (resource->get_content ()));
+										_job.job_vmemory_use (parse_size_literal (resource.@value));
 										break;
 								}
 							}
@@ -910,19 +911,17 @@ namespace Saga.TORQUE
 		 * Only the 'Job_Id' attribute is considered, so the document should be
 		 * stripped at most.
 		 */
-		public static string[] job_identifiers_from_xml_doc (Xml.Doc* doc)
+		public static string[] job_identifiers_from_gxml_doc (GXml.GDocument doc)
 		{
-			var data = doc->get_root_element ();
-
 			string[] job_identifiers = {};
 
-			for (var job = data->children; job->next != null; job = job->next)
+			foreach (var job in doc.children)
 			{
-				for (var child = job->children; child->next != null; child = child->next)
+				foreach (var child in job.children)
 				{
-					if (child->name == "Job_Id")
+					if (child.name == "Job_Id")
 					{
-						job_identifiers += child->get_content ();
+						job_identifiers += child.@value;
 						break;
 					}
 				}
@@ -943,9 +942,10 @@ namespace Saga.TORQUE
 
 				GLib.Process.check_exit_status (qstat.get_exit_status ());
 
-				var doc = Xml.Parser.parse_doc (stdout_buf);
-				update_monitored_jobs_from_xml_doc (doc);
-				return job_identifiers_from_xml_doc (doc);
+				var doc = new GXml.GDocument.from_string (stdout_buf);
+				update_monitored_jobs_from_gxml_doc (doc);
+
+				return job_identifiers_from_gxml_doc (doc);
 			}
 			catch (GLib.Error err)
 			{
@@ -965,9 +965,10 @@ namespace Saga.TORQUE
 
 				GLib.Process.check_exit_status (qstat.get_exit_status ());
 
-				var doc = Xml.Parser.parse_doc (stdout_buf);
-				update_monitored_jobs_from_xml_doc (doc);
-				return job_identifiers_from_xml_doc (doc);
+				var doc = new GXml.GDocument.from_string (stdout_buf);
+				update_monitored_jobs_from_gxml_doc (doc);
+
+				return job_identifiers_from_gxml_doc (doc);
 			}
 			catch (GLib.Error err)
 			{
@@ -987,15 +988,20 @@ namespace Saga.TORQUE
 
 				GLib.Process.check_exit_status (qstat.get_exit_status ());
 
-				var doc  = Xml.Parser.parse_doc (stdout_buf);
-				var data = doc->get_root_element ();
+				var doc = new GXml.GDocument.from_string (stdout_buf);
 
-				if (data->children == null)
+				update_monitored_jobs_from_gxml_doc (doc);
+
+				if (doc.children.is_empty)
 				{
 					throw new Error.DOES_NOT_EXIST ("Could not fetch the job '%s' from the TORQUE backend.", id);
 				}
 
-				return new Job.from_xml_node (get_session (), get_service_url (), data->children);
+				var job = new Job.from_gxml_node (get_session (), get_service_url (), doc.children.first ());
+
+				monitored_jobs.prepend (job);
+
+				return job;
 			}
 			catch (GLib.Error err)
 			{
@@ -1016,17 +1022,20 @@ namespace Saga.TORQUE
 
 				GLib.Process.check_exit_status (qstat.get_exit_status ());
 
-				var doc  = Xml.Parser.parse_doc (stdout_buf);
-				var data = doc->get_root_element ();
+				var doc = new GXml.GDocument.from_string (stdout_buf);
 
-				if (data->children == null)
+				update_monitored_jobs_from_gxml_doc (doc);
+
+				if (doc.children.is_empty)
 				{
 					throw new Error.DOES_NOT_EXIST ("Could not fetch the job '%s' from the TORQUE backend.", id);
 				}
 
-				update_monitored_jobs_from_xml_doc (doc);
+				var job = new Job.from_gxml_node (get_session (), get_service_url (), doc.children.first ());
 
-				return new Job.from_xml_node (get_session (), get_service_url (), data->children);
+				monitored_jobs.prepend (job);
+
+				return job;
 			}
 			catch (GLib.Error err)
 			{
