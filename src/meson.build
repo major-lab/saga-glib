@@ -22,11 +22,14 @@ saga_sources = [
     'saga-url.vala',
     'saga-wait-mode.vala']
 saga_lib = library('saga-glib-1.0', saga_sources, dependencies: [glib, gobject, gio, gmodule, uuid],
-                   vala_args: ['--vapidir=' + meson.current_source_dir() + '/../vapi', '--target-glib=2.40'],
+                   vala_args: ['--vapidir=' + meson.current_source_dir() + '/../vapi'],
                    link_args: '-Wl,-rpath,$$ORIGIN/backends',
                    install: true,
                    install_rpath: '$ORIGIN/saga-glib-1.0/backends')
 saga = declare_dependency(link_with: saga_lib, include_directories: include_directories('.'))
+
+install_data(meson.current_build_dir() + '/saga-glib-1.0.vapi', install_dir: 'share/vala/vapi')
+install_data('saga-glib-1.0.deps', install_dir: 'share/vala/vapi')
 
 # backends
 subdir('backends')
