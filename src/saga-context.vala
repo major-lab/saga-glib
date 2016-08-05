@@ -1,5 +1,22 @@
 public class Saga.Context : GLib.Object, Saga.Object
 {
+	internal static int compare (Context a, Context b)
+	{
+		// we use power of 2 to create a unique number for each combination
+		return 1    * strcmp (a.context_type, b.context_type)       +
+		       2    * strcmp (a.server, b.server)                   +
+		       4    * strcmp (a.cert_repository, b.cert_repository) +
+		       8    * strcmp (a.user_proxy, b.user_proxy)           +
+		       16   * strcmp (a.user_cert, b.user_cert)             +
+		       32   * strcmp (a.user_id, b.user_id)                 +
+		       64   * strcmp (a.user_pass, b.user_pass)             +
+		       128  * strcmp (a.user_vo, b.user_vo)                 +
+		       256  * (a.lifetime - b.lifetime).clamp (-1, 1)       +
+		       512  * strcmp (a.remote_id, b.remote_id)             +
+		       1024 * strcmp (a.remote_host, b.remote_host)         +
+		       2048 * (int) (a.remote_port - b.remote_port).clamp (-1, 1);
+	}
+
 	private uint8 _id[16];
 
 	/**
