@@ -9,10 +9,30 @@
 public struct Saga.BackendTypes
 {
 	/**
-	 * Type fot the {@link Saga.JobService} implementation.
+	 * Type for the {@link Saga.JobService} implementation.
 	 *
 	 * @since 1.0
 	 */
 	GLib.Type job_service_type;
+	/**
+	 * @since 1.0
+	 */
+	GLib.Type stream_server_type;
+	/**
+	 * @since 1.0
+	 */
+	GLib.Type file_type;
+	/**
+	 * @since 1.0
+	 */
+	GLib.Type logical_file_type;
+	/**
+	 * @since 1.0
+	 */
+	GLib.Type stream_type;
+	/**
+	 * @since 1.0
+	 */
+	GLib.Type rpc_type;
 }
 

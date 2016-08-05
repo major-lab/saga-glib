@@ -33,11 +33,13 @@ Two implementation of `Saga.TaskContainer` are provided:
 ## Shallow or deep copies
 
 To avoid messing with `Saga.Object.clone`, shallow and deep copies are
-implemented with ownership semantics.
+implemented with ownership semantics:
 
-if a parameter is to be deep copied, it is passed as `owned`.
+ - if a parameter is to be deep copied, it is passed as `owned`.
+ - if a return value is to be deep copied, it is returned as `unowned`.
 
-If a return value is to be deep copied, it is returned as `unowned`.
+Only extensions to the specification are versioned, the `1.0` release will
+provide a fully compliant implementation.
 
 ## Backends
 
