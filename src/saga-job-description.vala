@@ -16,8 +16,8 @@ public class Saga.JobDescription : GLib.Object, Saga.Object
 	public FileTransfer[]  file_transfer         { get; set;           default = {};    }
 	public bool?           cleanup               { get; set;           default = null;  }
 	public GLib.DateTime?  job_start_time        { get; set;           default = null;  }
-	public int?            wall_time_limit       { get; set;           default = null;  }
-	public int?            total_cpu_time        { get; set;           default = null;  }
+	public GLib.TimeSpan?  wall_time_limit       { get; set;           default = null;  }
+	public GLib.TimeSpan?  total_cpu_time        { get; set;           default = null;  }
 	public int?            total_physical_memory { get; set;           default = null;  }
 	public string?         cpu_architecture      { get; construct set; default = null;  }
 	public string?         operating_system_type { get; construct set; default = null;  }
