@@ -21,54 +21,54 @@ public abstract class Saga.Task<T> : GLib.Object, Saga.Object, Saga.Monitorable
 	                                                                                      Error.NO_SUCCESS;
 
 	public abstract void run ()                                                    throws Error.NOT_IMPLEMENTED,
-                                                                                          Error.INCORRECT_STATE,
-                                                                                          Error.TIMEOUT,
-                                                                                          Error.NO_SUCCESS;
+	                                                                                      Error.INCORRECT_STATE,
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS;
 
 	public virtual async void run_async (int priority = GLib.Priority.DEFAULT)     throws Error.NOT_IMPLEMENTED,
-                                                                                          Error.INCORRECT_STATE,
-                                                                                          Error.TIMEOUT,
-                                                                                          Error.NO_SUCCESS
+	                                                                                      Error.INCORRECT_STATE,
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS
 	{
 		run ();
 	}
 
 	public abstract void cancel (double timeout = 0.0)                             throws Error.NOT_IMPLEMENTED,
-                                                                                          Error.INCORRECT_STATE,
-                                                                                          Error.TIMEOUT,
-                                                                                          Error.NO_SUCCESS;
+	                                                                                      Error.INCORRECT_STATE,
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS;
 
 	public virtual async void cancel_async (double timeout = 0.0, int priority = GLib.Priority.DEFAULT)
 	                                                                               throws Error.NOT_IMPLEMENTED,
-                                                                                          Error.INCORRECT_STATE,
-                                                                                          Error.TIMEOUT,
-                                                                                          Error.NO_SUCCESS
+	                                                                                      Error.INCORRECT_STATE,
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS
 	{
 		cancel (timeout);
 	}
 
 	public abstract void wait (double timeout = 0.0)                               throws Error.NOT_IMPLEMENTED,
-                                                                                          Error.INCORRECT_STATE,
-                                                                                          Error.TIMEOUT,
-                                                                                          Error.NO_SUCCESS;
+	                                                                                      Error.INCORRECT_STATE,
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS;
 
 	public virtual async void wait_async (double timeout  = 0.0,
 	                                      int    priority = GLib.Priority.DEFAULT) throws Error.NOT_IMPLEMENTED,
-                                                                                          Error.INCORRECT_STATE,
-                                                                                          Error.TIMEOUT,
-                                                                                          Error.NO_SUCCESS
+	                                                                                      Error.INCORRECT_STATE,
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS
 	{
 		wait (timeout);
 	}
 
 	public abstract TaskState get_state ()                                         throws Error.NOT_IMPLEMENTED,
-                                                                                          Error.TIMEOUT,
-                                                                                          Error.NO_SUCCESS;
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS;
 
 	public virtual async TaskState get_state_async (int priority = GLib.Priority.DEFAULT)
 	                                                                               throws Error.NOT_IMPLEMENTED,
-                                                                                          Error.TIMEOUT,
-                                                                                          Error.NO_SUCCESS
+	                                                                                      Error.TIMEOUT,
+	                                                                                      Error.NO_SUCCESS
 	{
 		return get_state ();
 	}
