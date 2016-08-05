@@ -13,8 +13,15 @@ before_install:
     - sudo add-apt-repository --yes ppa:vala-team
     - sudo apt-get update --quiet
     - sudo apt-get install --yes --force-yes valac libglib2.0-bin
-      libglib2.0-dev uuid-dev torque-client python3-pip
-    - sudo pip3 install meson==0.31
+      libglib2.0-dev uuid-dev torque-client python3-pip intltool libgee-0.8-dev
+      libxml2-dev
+    - wget http://ftp.gnome.org/pub/gnome/sources/gxml/0.10/gxml-0.10.0.tar.xz
+    - wget https://bug768931.bugzilla-attachments.gnome.org/attachment.cgi?id=331737/tmp/gxml-0.10.0/0001-Fix-unavailable-connectivity-for-gio-2.0-2.44.patch
+    - tar xvf gxml-0.10.0.tar.xz
+    - cd gxml-0.10.0
+    - patch -p1 < 0001-Fix-unavailable-connectivity-for-gio-2.0-2.44.patch
+    - ./configure && make && make install && cd ..
+    - sudo pip3 install meson
     - wget https://github.com/ninja-build/ninja/releases/download/v1.5.1/ninja-linux.zip
     - sudo unzip ninja-linux.zip -d /usr/local/bin
 
