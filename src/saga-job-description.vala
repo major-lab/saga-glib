@@ -26,12 +26,6 @@ public class Saga.JobDescription : GLib.Object, Saga.Object
 	public string?         job_project           { get; construct set; default = null;  }
 	public URL[]           job_contact           { get; set;           default = {};    }
 
-	public JobDescription ()      throws Error.NOT_IMPLEMENTED,
-	                                     Error.NO_SUCCESS
-	{
-
-	}
-
 	construct
 	{
 		UUID.generate (_id);
