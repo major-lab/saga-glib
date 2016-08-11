@@ -2,14 +2,14 @@ public abstract class Saga.Job : Saga.Task<int>, Saga.Permissions
 {
 	// attributes
 	// TODO: check how they are set individually
-	public string             job_id          { get; construct; }
-	public URL                service_url     { get; construct; }
-	public string[]           execution_hosts { get; set;       }
-	public GLib.DateTime      created         { get; set;       }
-	public GLib.DateTime      started         { get; set;       }
-	public GLib.DateTime      finished        { get; set;       }
-	public int                exit_code       { get; set;       }
-	public GLib.ProcessSignal term_sig        { get; set;       }
+	public string              job_id          { get; construct;           }
+	public URL                 service_url     { get; construct;           }
+	public string[]            execution_hosts { get; set;                 }
+	public GLib.DateTime       created         { get; construct;           }
+	public GLib.DateTime?      started         { get; set; default = null; }
+	public GLib.DateTime?      finished        { get; set; default = null; }
+	public int?                exit_code       { get; set; default = null; }
+	public GLib.ProcessSignal? term_sig        { get; set; default = null; }
 
 	// metrics
 	public signal void job_state        (JobState           state);
