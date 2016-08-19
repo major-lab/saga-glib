@@ -390,6 +390,15 @@ namespace Saga.TORQUE
 		{
 			var job_description = new JobDescription ();
 
+			if (job_node.@get ("Variable_List") != null)
+			{
+				var env = job_node.@get ("Variable_List").@value.split (",");
+				job_description.environment       = env;
+				// careful here, 'PBS_O_INITDIR' is set to '-d' and defaults to
+				// '$HOME', unlike 'PBS_O_WORKDIR' which is set only if '-d' is given
+				job_description.working_directory = Environ.get_variable (env, "PBS_O_INITDIR");
+			}
+
 			job_description.total_cpu_count = int.parse (job_node.@get ("Resource_List").@get ("nodect").@value);
 
 			var nodes = job_node.@get ("Resource_List").@get ("nodes").@value;
