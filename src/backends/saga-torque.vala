@@ -18,7 +18,7 @@ namespace Saga.TORQUE
 
 	private const string SH     = "/usr/bin/sh";
 
-	private string[] qsub_args_from_job_description (JobDescription jd) throws Error.NO_SUCCESS
+	private string[] qsub_args_from_job_description (URL service_url, JobDescription jd) throws Error.NO_SUCCESS
 	{
 		string[] args = {QSUB};
 
@@ -154,10 +154,14 @@ namespace Saga.TORQUE
 		if (jd.candidate_hosts.length > 0)
 			warning ("The 'candidate_hosts' option is not implemented and was ignored.");
 
+		args += "-q";
 		if (jd.queue != null)
 		{
-			args += "-q";
-			args += jd.queue;
+			args += "%s@%s".printf (jd.queue, service_url.host);
+		}
+		else
+		{
+			args += "@%s".printf (service_url.host);
 		}
 
 		if (jd.job_project != null)
@@ -186,7 +190,7 @@ namespace Saga.TORQUE
 		return args;
 	}
 
-	private string[] qalter_args_from_job_description (JobDescription jd, string job_id) throws Error.NO_SUCCESS
+	private string[] qalter_args_from_job_description (URL service_url, JobDescription jd, string job_id) throws Error.NO_SUCCESS
 	{
 		string[] args = {QALTER};
 
@@ -318,7 +322,7 @@ namespace Saga.TORQUE
 			args += string.joinv (",", user_list);
 		}
 
-		args += job_id;
+		args += "%s@%s".printf (job_id, service_url.host);
 
 		return args;
 	}
@@ -478,7 +482,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qdel = new GLib.Subprocess.newv ({QDEL, "-b", "%d".printf ((int) timeout), job_id}, GLib.SubprocessFlags.NONE);
+				var qdel = new GLib.Subprocess.newv ({QDEL, "-b", "%d".printf ((int) timeout), "%s@%s".printf (job_id, service_url.host)},
+				                                     GLib.SubprocessFlags.NONE);
 				qdel.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -512,7 +517,8 @@ namespace Saga.TORQUE
 			string stderr_buf;
 			try
 			{
-				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x", job_id}, SubprocessFlags.STDOUT_PIPE);
+				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x", "%s@%s".printf (job_id, service_url.host)},
+				                                      SubprocessFlags.STDOUT_PIPE);
 				qstat.communicate_utf8 (null, null, out stdout_buf, out stderr_buf);
 				GLib.Process.check_exit_status (qstat.get_exit_status ());
 			}
@@ -619,7 +625,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qhold = new GLib.Subprocess.newv ({QHOLD, job_id}, GLib.SubprocessFlags.NONE);
+				var qhold = new GLib.Subprocess.newv ({QHOLD, "%s@%s".printf (job_id, service_url.host)},
+				                                      GLib.SubprocessFlags.NONE);
 				qhold.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -632,7 +639,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qhold = new GLib.Subprocess.newv ({QHOLD, job_id}, GLib.SubprocessFlags.NONE);
+				var qhold = new GLib.Subprocess.newv ({QHOLD, "%s@%s".printf (job_id, service_url.host)},
+				                                      GLib.SubprocessFlags.NONE);
 				yield qhold.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -645,7 +653,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qrls = new GLib.Subprocess.newv ({QRLS, job_id}, GLib.SubprocessFlags.NONE);
+				var qrls = new GLib.Subprocess.newv ({QRLS, "%s@%s".printf (job_id, service_url.host)},
+				                                     GLib.SubprocessFlags.NONE);
 				qrls.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -658,7 +667,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qrls = new GLib.Subprocess.newv ({QRLS, job_id}, GLib.SubprocessFlags.NONE);
+				var qrls = new GLib.Subprocess.newv ({QRLS, "%s@%s".printf (job_id, service_url.host)},
+				                                     GLib.SubprocessFlags.NONE);
 				yield qrls.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -671,7 +681,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qchkpt = new GLib.Subprocess.newv ({QCHKPT, job_id}, GLib.SubprocessFlags.NONE);
+				var qchkpt = new GLib.Subprocess.newv ({QCHKPT, "%s@%s".printf (job_id, service_url.host)},
+				                                       GLib.SubprocessFlags.NONE);
 				qchkpt.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -684,7 +695,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qchkpt = new GLib.Subprocess.newv ({QCHKPT, job_id}, GLib.SubprocessFlags.NONE);
+				var qchkpt = new GLib.Subprocess.newv ({QCHKPT, "%s@%s".printf (job_id, service_url.host)},
+				                                       GLib.SubprocessFlags.NONE);
 				yield qchkpt.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -697,7 +709,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qalter = new GLib.Subprocess.newv (qalter_args_from_job_description (jd, job_id), GLib.SubprocessFlags.NONE);
+				var qalter = new GLib.Subprocess.newv (qalter_args_from_job_description (service_url, jd, job_id),
+				                                       GLib.SubprocessFlags.NONE);
 				qalter.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -711,7 +724,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qalter = new GLib.Subprocess.newv (qalter_args_from_job_description (jd, job_id), GLib.SubprocessFlags.NONE);
+				var qalter = new GLib.Subprocess.newv (qalter_args_from_job_description (service_url, jd, job_id),
+				                                       GLib.SubprocessFlags.NONE);
 				yield qalter.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -724,7 +738,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qsig = new GLib.Subprocess.newv ({QSIG, "-s", signum.to_string (), job_id}, GLib.SubprocessFlags.NONE);
+				var qsig = new GLib.Subprocess.newv ({QSIG, "-s", signum.to_string (), "%s@%s".printf (job_id, service_url.host)},
+				                                     GLib.SubprocessFlags.NONE);
 				qsig.wait_check ();
 			}
 			catch (GLib.Error err)
@@ -738,7 +753,8 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qsig = new GLib.Subprocess.newv ({QSIG, "-s", signum.to_string (), job_id}, GLib.SubprocessFlags.NONE);
+				var qsig = new GLib.Subprocess.newv ({QSIG, "-s", signum.to_string (), "%s@%s".printf (job_id, service_url.host)},
+				                                     GLib.SubprocessFlags.NONE);
 				yield qsig.wait_check_async ();
 			}
 			catch (GLib.Error err)
@@ -754,8 +770,14 @@ namespace Saga.TORQUE
 				execution_hosts = {job_node.@get ("exec_host").@value};
 			}
 
-			if (job_node.@get ("start_time") != null) {
+			if (job_node.@get ("start_time") != null)
+			{
 				started = new DateTime.from_unix_utc (int64.parse (job_node.@get ("start_time").@value));
+			}
+
+			if (job_node.@get ("comp_time") != null)
+			{
+				finished = new DateTime.from_unix_utc (int64.parse (job_node.@get ("comp_time").@value));
 			}
 
 			if (job_node.@get ("exit_status") != null)
@@ -824,10 +846,9 @@ namespace Saga.TORQUE
 						}
 						else
 						{
-							qstat_args += job.job_id;
+							qstat_args += "%s@%s".printf (job.job_id, get_service_url ().host);
 							return false;
 						}
-						return job.ref_count < 3;
 					});
 
 					if (qstat_args.length < 3)
@@ -908,7 +929,7 @@ namespace Saga.TORQUE
 				var stdin_buf = "#!%s\n%s %s".printf (SH, jd.executable, string.joinv (" ", quoted_arguments));
 
 				// TODO: create a job on hold
-				var qsub = new GLib.Subprocess.newv (qsub_args_from_job_description (jd),
+				var qsub = new GLib.Subprocess.newv (qsub_args_from_job_description (get_service_url (), jd),
 				                                     (jd.interactive ? GLib.SubprocessFlags.STDERR_PIPE : GLib.SubprocessFlags.NONE) |
 				                                     GLib.SubprocessFlags.STDIN_PIPE                                                 |
 				                                     GLib.SubprocessFlags.STDOUT_PIPE);
@@ -975,7 +996,7 @@ namespace Saga.TORQUE
 
 				// hold the job to prevent its immediate execution (until 'qrls' is called)
 				// TODO: check if we can start the job on-hold
-				 var qhold = new GLib.Subprocess.newv ({"qhold", job.job_id}, GLib.SubprocessFlags.NONE);
+				 var qhold = new GLib.Subprocess.newv ({"qhold", "%s@%s".printf (job.job_id, get_service_url ().host)}, GLib.SubprocessFlags.NONE);
 				 qhold.wait_check ();
 
 				return job;
@@ -1038,7 +1059,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x"}, GLib.SubprocessFlags.STDOUT_PIPE);
+				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x", "@%s".printf (get_service_url ().host)}, GLib.SubprocessFlags.STDOUT_PIPE);
 
 				string stdout_buf;
 				string stderr_buf;
@@ -1061,7 +1082,7 @@ namespace Saga.TORQUE
 		{
 			try
 			{
-				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x"}, GLib.SubprocessFlags.STDOUT_PIPE);
+				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x", "@%s".printf (get_service_url ().host)}, GLib.SubprocessFlags.STDOUT_PIPE);
 
 				string stdout_buf;
 				string stderr_buf;
@@ -1089,7 +1110,7 @@ namespace Saga.TORQUE
 
 			try
 			{
-				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x", id}, GLib.SubprocessFlags.STDOUT_PIPE);
+				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x", "%s@%s".printf (id, get_service_url ().host)}, GLib.SubprocessFlags.STDOUT_PIPE);
 
 				string stdout_buf;
 				string stderr_buf;
@@ -1130,7 +1151,7 @@ namespace Saga.TORQUE
 
 			try
 			{
-				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x", id}, GLib.SubprocessFlags.STDOUT_PIPE);
+				var qstat = new GLib.Subprocess.newv ({QSTAT, "-x", "%s@%s".printf (id, get_service_url ().host)}, GLib.SubprocessFlags.STDOUT_PIPE);
 
 				string stdout_buf;
 				string stderr_buf;
