@@ -166,8 +166,16 @@ namespace Saga.TORQUE
 
 		if (jd.job_project != null)
 		{
-			args += "-N";
-			args += jd.job_project;
+			if (/^[[:alpha:]][[:graph:]]{0,14}/.match (jd.job_project))
+			{
+				args += "-N";
+				args += jd.job_project;
+			}
+			else
+			{
+				throw new Error.NO_SUCCESS ("The job name must be at most 15 characters in length, must start with an alphabetic character and be composed of printable characters '%s' was provided.",
+				                            jd.job_project);
+			}
 		}
 
 		string[] user_list = {};
