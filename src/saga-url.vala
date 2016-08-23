@@ -1,13 +1,12 @@
 public class Saga.URL : GLib.Object, Saga.Object
 {
-	private static GLib.Regex url_regex =
-		/^\w+:\/\/((?<userinfo>\w+)@)?(?<host>\w+)(:(?<port>\d+))?(?<path>\/[^?]*)(\?(?<query>[^#]*))?(#(?<fragment>.*))?$/;
+	private static GLib.Regex url_regex = /^\w+:\/\/((?<userinfo>.+)@)?(?<host>[^:^?^#^\/]+)(:(?<port>\d+))?(?<path>\/[^?^#]*)?(\?(?<query>[^#]*))?(#(?<fragment>.*))?$/;
 
 	public string  scheme   { get; set;                 }
 	public string  host     { get; set;                 }
 	public uint?   port     { get; set; default = null; }
 	public string? fragment { get; set; default = null; }
-	public string  path     { get; set;                 }
+	public string  path     { get; set; default = "/";  }
 	public string? query    { get; set; default = null; }
 	public string? userinfo { get; set; default = null; }
 
@@ -75,10 +74,17 @@ public class Saga.URL : GLib.Object, Saga.Object
 		{
 			scheme   = GLib.Uri.parse_scheme (url);
 			host     = match_info.fetch_named ("host");
-			port     = (uint) int.parse (match_info.fetch_named ("port"));
-			fragment = GLib.Uri.unescape_string (match_info.fetch_named ("fragment"));
-			path     = GLib.Uri.unescape_string (match_info.fetch_named ("path"));
-			query    = GLib.Uri.unescape_string (match_info.fetch_named ("query"));
+			if (match_info.fetch_named ("port") == null)
+			{
+				port = null;
+			}
+			else
+			{
+				port = (uint) int.parse (match_info.fetch_named ("port"));
+			}
+			fragment = match_info.fetch_named ("fragment") == null ? null : GLib.Uri.unescape_string (match_info.fetch_named ("fragment"));
+			path     = GLib.Uri.unescape_string (match_info.fetch_named ("path")) ?? "/";
+			query    = match_info.fetch_named ("query") == null ? null : GLib.Uri.unescape_string (match_info.fetch_named ("query"));
 			userinfo = match_info.fetch_named ("userinfo");
 		}
 		else

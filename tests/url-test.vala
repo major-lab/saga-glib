@@ -26,6 +26,13 @@ public int main (string[] args)
 		}
 	});
 
+	Test.add_func ("/url/mailto", () => {
+		var url = new Saga.URL ("mailto://johndoe@example.com");
+		assert ("mailto" == url.scheme);
+		assert ("johndoe" == url.userinfo);
+		assert ("example.com" == url.host);
+		assert ("/" == url.path);
+	});
 
 	return Test.run ();
 }
