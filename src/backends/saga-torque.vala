@@ -800,9 +800,12 @@ namespace Saga.TORQUE
 			if (job_node.@get ("exit_status") != null)
 			{
 				exit_code = int.parse (job_node.@get ("exit_status").@value);
-			}
 
-			// TODO: 'term_sig'
+				if (exit_code > 256)
+				{
+					term_sig = (ProcessSignal) (exit_code - 256);
+				}
+			}
 
 			JobState current_job_state;
 			switch (job_node.@get ("job_state").@value)
@@ -821,7 +824,14 @@ namespace Saga.TORQUE
 					break;
 				case "C":
 				case "E":
-					current_job_state = exit_code == 0 ? JobState.DONE : JobState.FAILED;
+					if (term_sig == 9 || term_sig == 15)
+					{
+						current_job_state = JobState.CANCELED;
+					}
+					else
+					{
+						current_job_state = exit_code == 0 ? JobState.DONE : JobState.FAILED;
+					}
 					break;
 				default:
 					warning ("Unexpected value '%s' for 'job_state' in 'qstat' output.", job_node.@get ("job_state").@value);
