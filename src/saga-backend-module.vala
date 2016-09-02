@@ -47,7 +47,7 @@ public class Saga.BackendModule : GLib.TypeModule
 	 */
 	public static BackendModule new_for_url (URL url) throws Error.NO_SUCCESS
 	{
-		return new_for_name (url.scheme);
+		return new_for_name (url.scheme.split ("+")[0]);
 	}
 
 	/**

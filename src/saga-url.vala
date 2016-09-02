@@ -1,6 +1,6 @@
 public class Saga.URL : GLib.Object, Saga.Object
 {
-	private static GLib.Regex url_regex = /^\w+:\/\/((?<userinfo>.+)@)?(?<host>[^:^?^#^\/]+)(:(?<port>\d+))?(?<path>\/[^?^#]*)?(\?(?<query>[^#]*))?(#(?<fragment>.*))?$/;
+	private static GLib.Regex url_regex = /^[\w+]+:\/\/((?<userinfo>.+)@)?(?<host>[^:^?^#^\/]+)(:(?<port>\d+))?(?<path>\/[^?^#]*)?(\?(?<query>[^#]*))?(#(?<fragment>.*))?$/;
 
 	public string  scheme   { get; set;                 }
 	public string  host     { get; set;                 }
