@@ -6,17 +6,16 @@ public Saga.BackendTypes backend_init (GLib.TypeModule type_module)
 
 namespace Saga.TORQUE
 {
-	// TODO: use extern from the build
-	private const string QALTER = "qalter";
-	private const string QCHKPT = "qchkpt";
-	private const string QDEL   = "qdel";
-	private const string QHOLD  = "qhold";
-	private const string QRLS   = "qrls";
-	private const string QSIG   = "qsig";
-	private const string QSTAT  = "qstat";
-	private const string QSUB   = "qsub";
+	private extern const string QALTER;
+	private extern const string QCHKPT;
+	private extern const string QDEL;
+	private extern const string QHOLD;
+	private extern const string QRLS;
+	private extern const string QSIG;
+	private extern const string QSTAT;
+	private extern const string QSUB;
 
-	private const string SH     = "/usr/bin/sh";
+	private extern const string SH;
 
 	private string[] qsub_args_from_job_description (URL service_url, JobDescription jd) throws Error.NO_SUCCESS
 	{
