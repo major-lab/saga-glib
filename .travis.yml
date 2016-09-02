@@ -16,13 +16,13 @@ before_install:
       libglib2.0-dev uuid-dev torque-client python3-pip intltool libgee-0.8-dev
       libxml2-dev
     - wget http://ftp.gnome.org/pub/gnome/sources/gxml/0.10/gxml-0.10.0.tar.xz
-    - wget https://bug768931.bugzilla-attachments.gnome.org/attachment.cgi?id=331737/tmp/gxml-0.10.0/0001-Fix-unavailable-connectivity-for-gio-2.0-2.44.patch
+    - wget https://bug768931.bugzilla-attachments.gnome.org/attachment.cgi?id=331737 -O 0001-Fix-unavailable-connectivity-for-gio-2.0-2.44.patch
     - tar xvf gxml-0.10.0.tar.xz
     - cd gxml-0.10.0
-    - patch -p1 < 0001-Fix-unavailable-connectivity-for-gio-2.0-2.44.patch
-    - ./configure && make && make install && cd ..
+    - patch -p1 < ../0001-Fix-unavailable-connectivity-for-gio-2.0-2.44.patch
+    - ./configure --prefix=/usr && make && sudo make install && cd ..
     - sudo pip3 install meson
-    - wget https://github.com/ninja-build/ninja/releases/download/v1.5.1/ninja-linux.zip
+    - wget https://github.com/ninja-build/ninja/releases/download/v1.6.0/ninja-linux.zip
     - sudo unzip ninja-linux.zip -d /usr/local/bin
 
 before_script:
