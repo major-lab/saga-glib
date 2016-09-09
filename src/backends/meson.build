@@ -23,3 +23,9 @@ shared_library('saga-glib-torque', 'saga-torque.vala',
                         '-DSAGA_TORQUE_SH="@0@"'.format(sh.path()[0])],
                install: true,
                install_dir: get_option('libdir') + '/saga-glib-1.0/backends')
+
+shared_library('saga-glib-local', 'saga-local.vala',
+               dependencies: [glib, gobject, gio, saga, uuid],
+               vala_args: ['--target-glib=2.40', '--vapidir=' + meson.current_source_dir () + '/../../vapi'],
+               install: true,
+               install_dir: get_option('libdir') + '/saga-glib-1.0/backends')
