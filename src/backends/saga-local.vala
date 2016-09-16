@@ -16,7 +16,7 @@ namespace Saga.Local
 
 		public Job (Session session, SubprocessLauncher launcher, string[] args, JobDescription jd)
 		{
-			GLib.Object (job_id: "", created: new DateTime.now_utc ());
+			GLib.Object (job_id: jd.get_id (), created: new DateTime.now_utc ());
 			_subprocess_launcher = launcher;
 			_args                = args;
 			_job_description     = jd;
@@ -54,14 +54,13 @@ namespace Saga.Local
 			try
 			{
 				_subprocess = _subprocess_launcher.spawnv (_args);
+				started     = new GLib.DateTime.now_utc ();
+				job_state (JobState.RUNNING);
 			}
 			catch (GLib.Error err)
 			{
 				throw new Error.NO_SUCCESS (err.message);
 			}
-
-			started = new GLib.DateTime.now_utc ();
-			job_state (JobState.RUNNING);
 		}
 
 		public override void cancel (double timeout = 0.0)
@@ -69,24 +68,31 @@ namespace Saga.Local
 			_subprocess.force_exit ();
 		}
 
+		private bool _waiting = false;
+
 		public override void wait (double timeout = 0.0) throws Error.NO_SUCCESS
 		{
 			while (_subprocess == null)
 			{
-				Thread.@yield ();
+				GLib.Thread.@yield ();
 			}
 
 			try
 			{
 				_subprocess.wait ();
+				_waiting = true;
 			}
 			catch (GLib.Error err)
 			{
 				throw new Error.NO_SUCCESS (err.message);
 			}
 
-			exit_code = _subprocess.get_status ();
-			term_sig  = (GLib.ProcessSignal) _subprocess.get_term_sig ();
+			if (_subprocess.get_if_signaled ())
+			{
+				term_sig  = (GLib.ProcessSignal) _subprocess.get_term_sig ();
+			}
+
+			exit_code = _subprocess.get_exit_status ();
 			finished  = new GLib.DateTime.now_utc ();
 			job_state (exit_code == 0 ? JobState.DONE : JobState.FAILED);
 		}
@@ -101,17 +107,22 @@ namespace Saga.Local
 
 			try
 			{
+				_waiting = true;
 				yield _subprocess.wait_async ();
+
+				if (_subprocess.get_if_signaled ())
+				{
+					term_sig  = (GLib.ProcessSignal) _subprocess.get_term_sig ();
+				}
+
+				exit_code = _subprocess.get_status ();
+				finished  = new GLib.DateTime.now_utc ();
+				job_state (exit_code == 0 ? JobState.DONE : JobState.FAILED);
 			}
 			catch (GLib.Error err)
 			{
 				throw new Error.NO_SUCCESS (err.message);
 			}
-
-			exit_code = _subprocess.get_status ();
-			term_sig  = (GLib.ProcessSignal) _subprocess.get_term_sig ();
-			finished  = new GLib.DateTime.now_utc ();
-			job_state (exit_code == 0 ? JobState.DONE : JobState.FAILED);
 		}
 
 		public override TaskState get_state ()
@@ -120,9 +131,9 @@ namespace Saga.Local
 			{
 				return TaskState.NEW;
 			}
-			else if (_subprocess.get_if_exited ())
+			else if (_waiting && _subprocess.get_if_exited ())
 			{
-				return TaskState.DONE;
+				return _subprocess.get_successful () ? TaskState.DONE : TaskState.FAILED;
 			}
 			else
 			{
@@ -191,7 +202,10 @@ namespace Saga.Local
 			@signal (GLib.ProcessSignal.CONT);
 		}
 
-		public override void checkpoint () {}
+		public override void checkpoint ()
+		{
+			// TODO
+		}
 
 		public override void migrate (owned JobDescription jd) throws Error.NOT_IMPLEMENTED
 		{
@@ -218,21 +232,18 @@ namespace Saga.Local
 				}
 			}
 
-			var launcher = new GLib.SubprocessLauncher (jd.interactive ? GLib.SubprocessFlags.STDIN_PIPE  |
-			                                                             GLib.SubprocessFlags.STDOUT_PIPE |
-			                                                             GLib.SubprocessFlags.STDERR_PIPE :
-			                                                             GLib.SubprocessFlags.NONE);
-
-			launcher.set_cwd (jd.working_directory);
-			launcher.set_environ (string.joinv (",", jd.environment));
+			SubprocessLauncher launcher;
 
 			if (jd.interactive)
 			{
-
+				launcher = new GLib.SubprocessLauncher (GLib.SubprocessFlags.STDIN_PIPE  |
+				                                        GLib.SubprocessFlags.STDOUT_PIPE |
+				                                        GLib.SubprocessFlags.STDERR_PIPE);
 			}
 			else
 			{
-				var wd = File.new_for_path (jd.working_directory ?? ".");
+				launcher = new GLib.SubprocessLauncher (GLib.SubprocessFlags.NONE);
+				var wd = File.new_for_path (jd.working_directory);
 				if (jd.input != null)
 					launcher.set_stdin_file_path (wd.resolve_relative_path (jd.input).get_path ());
 				if (jd.output != null)
@@ -241,12 +252,32 @@ namespace Saga.Local
 					launcher.set_stderr_file_path (wd.resolve_relative_path (jd.error).get_path ());
 			}
 
+			launcher.set_cwd (jd.working_directory);
+
+#if VALA_0_34
+			launcher.set_environ (jd.environment);
+#else
+			// cannot use 'set_environ' here, see https://bugzilla.gnome.org/show_bug.cgi?id=771307
+			if (jd.environment.length > 0)
+				critical ("Cannot use 'GLib.SubprocessLauncher.set_environ', the fix was introduced in Vala 0.34.");
+#endif
+
 			string[] args = {jd.executable};
 
 			foreach (var arg in jd.arguments)
 				args += arg;
 
-			return new Job (get_session (), launcher, args, jd);
+			var job = new Job (get_session (), launcher, args, jd);
+
+			_jobs.insert (job.get_id (), job);
+
+			// cleanup done, failed or canceled jobs
+			job.job_state.connect ((state) => {
+				if (state > 2 && state < 6)
+					_jobs.remove (job.get_id ());
+			});
+
+			return job;
 		}
 
 		public override Saga.Job get_job (string id)
@@ -256,9 +287,7 @@ namespace Saga.Local
 
 		public override string[] list ()
 		{
-			string[] ids = {};
-
-			return ids;
+			return _jobs.get_keys_as_array ();
 		}
 
 		public override Saga.Job get_self () throws Error.NO_SUCCESS
