@@ -25,6 +25,12 @@ namespace Saga.TORQUE
 		args += "-c";
 		args += "enabled";
 
+		if (service_url.userinfo != null)
+		{
+			args += "-A";
+			args += service_url.userinfo;
+		}
+
 		if (jd.spmd_variation != null)
 		{
 			warning ("TORQUE backend does not support 'spmd_variation'.");
@@ -200,6 +206,12 @@ namespace Saga.TORQUE
 	private string[] qalter_args_from_job_description (URL service_url, JobDescription jd, string job_id) throws Error.NO_SUCCESS
 	{
 		string[] args = {QALTER};
+
+		if (service_url.userinfo != null)
+		{
+			args += "-A";
+			args += service_url.userinfo;
+		}
 
 		string[] resource_list = {};
 
