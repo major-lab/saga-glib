@@ -243,16 +243,12 @@ namespace Saga.Local
 			else
 			{
 				launcher = new GLib.SubprocessLauncher (GLib.SubprocessFlags.NONE);
-				var wd = File.new_for_path (jd.working_directory);
-				if (jd.input != null)
-					launcher.set_stdin_file_path (wd.resolve_relative_path (jd.input).get_path ());
-				if (jd.output != null)
-					launcher.set_stdout_file_path (wd.resolve_relative_path (jd.output).get_path ());
-				if (jd.error != null)
-					launcher.set_stderr_file_path (wd.resolve_relative_path (jd.error).get_path ());
 			}
 
-			launcher.set_cwd (jd.working_directory);
+			string[] args = {jd.executable};
+
+			foreach (var arg in jd.arguments)
+				args += arg;
 
 #if VALA_0_34
 			launcher.set_environ (jd.environment);
@@ -262,10 +258,28 @@ namespace Saga.Local
 				critical ("Cannot use 'GLib.SubprocessLauncher.set_environ', the fix was introduced in Vala 0.34.");
 #endif
 
-			string[] args = {jd.executable};
+			var wd = File.new_for_path (jd.working_directory);
+			if (jd.input != null)
+				launcher.set_stdin_file_path (wd.resolve_relative_path (jd.input).get_path ());
+			if (jd.output != null)
+				launcher.set_stdout_file_path (wd.resolve_relative_path (jd.output).get_path ());
+			if (jd.error != null)
+				launcher.set_stderr_file_path (wd.resolve_relative_path (jd.error).get_path ());
 
-			foreach (var arg in jd.arguments)
-				args += arg;
+			launcher.set_cwd (jd.working_directory);
+
+			// TODO: 'file_transfer'
+
+			// TODO: 'cleanup'
+
+			launcher.set_child_setup (() => {
+				// TODO: 'wall_time_limit'
+				Linux.setrlimit (Linux.RLIMIT_NPROC, Linux.RLimit () {rlim_cur = jd.number_of_processes});
+				if (jd.total_cpu_time != null)
+					Linux.setrlimit (Linux.RLIMIT_CPU, Linux.RLimit () {rlim_cur = jd.total_cpu_time});
+				if (jd.total_physical_memory != null)
+					Linux.setrlimit (Linux.RLIMIT_AS, Linux.RLimit () {rlim_cur = jd.total_physical_memory});
+			});
 
 			var job = new Job (get_session (), launcher, args, jd);
 
