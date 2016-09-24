@@ -207,12 +207,6 @@ namespace Saga.TORQUE
 	{
 		string[] args = {QALTER};
 
-		if (service_url.userinfo != null)
-		{
-			args += "-A";
-			args += service_url.userinfo;
-		}
-
 		string[] resource_list = {};
 
 		resource_list += "nodes=%d:ppn=%d".printf (jd.total_cpu_count, jd.processes_per_host);
@@ -322,7 +316,7 @@ namespace Saga.TORQUE
 
 		if (jd.job_project != null)
 		{
-			args += "-N";
+			args += "-A";
 			args += jd.job_project;
 		}
 
