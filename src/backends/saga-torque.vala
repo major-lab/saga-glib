@@ -559,16 +559,16 @@ namespace Saga.TORQUE
 				throw new Error.NO_SUCCESS (err.message);
 			}
 
-			var data = doc.children.first ();
+			var data = doc.children_nodes.first ();
 
-			if (data.children.is_empty)
+			if (data.children_nodes.is_empty)
 			{
 				throw new Error.NO_SUCCESS ("Could not retreive the state of task '%s' from the TORQUE backend.", job_id);
 			}
 
-			update_from_gxml_node (data.children.first ());
+			update_from_gxml_node (data.children_nodes.first ());
 
-			switch (data.children.first ().@get ("job_state").@value)
+			switch (data.children_nodes.first ().@get ("job_state").@value)
 			{
 				case "H":
 				case "Q":
@@ -913,12 +913,12 @@ namespace Saga.TORQUE
 		 */
 		private void update_monitored_jobs_from_gxml_doc (GXml.GDocument doc)
 		{
-			if (doc.children.is_empty)
+			if (doc.children_nodes.is_empty)
 				return;
 
-			var data = doc.children.first ();
+			var data = doc.children_nodes.first ();
 
-			foreach (var job_node in data.children)
+			foreach (var job_node in data.children_nodes)
 			{
 				var job_id = job_node.@get ("Job_Id");
 
@@ -1077,9 +1077,9 @@ namespace Saga.TORQUE
 		{
 			string[] job_identifiers = {};
 
-			var data = doc.children.first ();
+			var data = doc.children_nodes.first ();
 
-			foreach (var job in data.children)
+			foreach (var job in data.children_nodes)
 			{
 				job_identifiers += job.@get ("Job_Id").@value;
 			}
@@ -1154,14 +1154,14 @@ namespace Saga.TORQUE
 
 				update_monitored_jobs_from_gxml_doc (doc);
 
-				var data = doc.children.first ();
+				var data = doc.children_nodes.first ();
 
-				if (data.children.is_empty)
+				if (data.children_nodes.is_empty)
 				{
 					throw new Error.DOES_NOT_EXIST ("Could not fetch the job '%s' from the TORQUE backend.", id);
 				}
 
-				var job = new Job.from_gxml_node (get_session (), get_service_url (), data.children.first ());
+				var job = new Job.from_gxml_node (get_session (), get_service_url (), data.children_nodes.first ());
 
 				monitored_jobs.insert (job.job_id, job);
 
@@ -1195,14 +1195,14 @@ namespace Saga.TORQUE
 
 				update_monitored_jobs_from_gxml_doc (doc);
 
-				var data = doc.children.first ();
+				var data = doc.children_nodes.first ();
 
-				if (data.children.is_empty)
+				if (data.children_nodes.is_empty)
 				{
 					throw new Error.DOES_NOT_EXIST ("Could not fetch the job '%s' from the TORQUE backend.", id);
 				}
 
-				var job = new Job.from_gxml_node (get_session (), get_service_url (), data.children.first ());
+				var job = new Job.from_gxml_node (get_session (), get_service_url (), data.children_nodes.first ());
 
 				monitored_jobs.insert (job.job_id, job);
 
