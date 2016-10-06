@@ -132,7 +132,7 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 
 	public override Task get_task (string id)
 	{
-		return _tasks.search<string> (id, (a, b) => { return strcmp (a, b.get_id ()); }).data;
+		return _tasks.search<string> (id, (a, b) => { return strcmp (a.get_id (), b); }).data;
 	}
 
 	public override Task[] get_tasks ()

@@ -798,6 +798,8 @@ public struct float {
 	public static float max (float a, float b);
 	[CCode (cname = "CLAMP")]
 	public float clamp (float low, float high);
+	[CCode (cname = "fabsf")]
+	public float abs ();
 }
 
 [SimpleType]
@@ -847,6 +849,8 @@ public struct double {
 	public static double max (double a, double b);
 	[CCode (cname = "CLAMP")]
 	public double clamp (double low, double high);
+	[CCode (cname = "fabs")]
+	public double abs ();
 
 	[CCode (cname = "G_ASCII_DTOSTR_BUF_SIZE")]
 	public const int DTOSTR_BUF_SIZE;
@@ -1723,6 +1727,9 @@ namespace GLib {
 	[CCode (type_id = "G_TYPE_INT", marshaller_type_name = "INT", get_value_function = "g_value_get_int", set_value_function = "g_value_set_int", default_value = "0")]
 	[IntegerType (rank = 6)]
 	public struct Pid : int {
+		[CCode (cname = "G_PID_FORMAT")]
+		[Version (since = "2.50")]
+		public const string FORMAT;
 	}
 
 	public delegate void ChildWatchFunc (Pid pid, int status);
@@ -1796,10 +1803,10 @@ namespace GLib {
 		public static bool remove_by_user_data (void* user_data);
 		[Version (since = "2.32")]
 		[CCode (cname = "G_SOURCE_CONTINUE")]
-		public static const bool CONTINUE;
+		public const bool CONTINUE;
 		[Version (since = "2.32")]
 		[CCode (cname = "G_SOURCE_REMOVE")]
-		public static const bool REMOVE;
+		public const bool REMOVE;
 
 		protected abstract bool prepare (out int timeout_);
 		protected abstract bool check ();
@@ -2358,10 +2365,33 @@ namespace GLib {
 		LEVEL_MASK
 	}
 
+	[CCode (cprefix = "G_LOG_WRITER_", has_type_id = false)]
+	[Version (since = "2.50")]
+	public enum LogWriterOutput {
+		HANDLED,
+		UNHANDLED
+	}
+
+	[CCode (has_type_id = false, simple_generics = true)]
+	[Version (since = "2.50")]
+	public struct LogField<T> {
+		public unowned string key;
+		public unowned T @value;
+		public ssize_t length;
+	}
+
 	public void logv (string? log_domain, LogLevelFlags log_level, string format, va_list args);
 	[Diagnostics]
 	[PrintfFormat]
 	public void log (string? log_domain, LogLevelFlags log_level, string format, ...);
+
+	[Version (since = "2.50")]
+	public void log_structured (string? log_domain, LogLevelFlags log_levels, ...);
+	[Version (since = "2.50")]
+	public void log_structured_array (LogLevelFlags log_levels, LogField[] fields);
+
+	[Version (since = "2.50")]
+	public void log_variant (string? log_domain, LogLevelFlags log_levels, GLib.Variant fields);
 
 	[Diagnostics]
 	[PrintfFormat]
@@ -2384,8 +2414,13 @@ namespace GLib {
 	[PrintfFormat]
 	[Version (since = "2.40")]
 	public void info (string format, ...);
+	[CCode (cname = "G_DEBUG_HERE")]
+	[Version (since = "2.50")]
+	public void debug_here ();
 
 	public delegate void LogFunc (string? log_domain, LogLevelFlags log_levels, string message);
+	[Version (since = "2.50")]
+	public delegate LogWriterOutput LogWriterFunc (LogLevelFlags log_level, LogField[] fields);
 
 	namespace Log {
 		public static uint set_handler (string? log_domain, LogLevelFlags log_levels, LogFunc log_func);
@@ -2402,6 +2437,21 @@ namespace GLib {
 		public const string FILE;
 		public const int LINE;
 		public const string METHOD;
+
+		[Version (since = "2.50")]
+		public static void set_writer_func (owned LogWriterFunc func);
+		[Version (since = "2.50")]
+		public static bool writer_supports_color (int output_fd);
+		[Version (since = "2.50")]
+		public static bool writer_is_journald (int output_fd);
+		[Version (since = "2.50")]
+		public static string writer_format_fields (LogLevelFlags log_levels, LogField[] fields, bool use_color);
+		[Version (since = "2.50")]
+		public static LogWriterOutput writer_journald (LogLevelFlags log_levels, LogField[] fields, void* user_data);
+		[Version (since = "2.50")]
+		public static LogWriterOutput writer_standard_streams (LogLevelFlags log_levels, LogField[] fields, void* user_data);
+		[Version (since = "2.50")]
+		public static LogWriterOutput writer_default (LogLevelFlags log_levels, LogField[] fields, void* user_data);
 	}
 
 	[CCode (has_type_id = false)]
@@ -2522,6 +2572,9 @@ namespace GLib {
 		[Version (since = "2.30")]
 		[CCode (cname = "g_compute_hmac_for_string")]
 		public static string compute_for_string (ChecksumType checksum_type, uint8[] key, string str, size_t length = -1);
+		[Version (since = "2.50")]
+		[CCode (cname = "g_compute_hmac_for_bytes")]
+		public static string compute_hmac_for_bytes (ChecksumType checksum_type, Bytes key, Bytes data);
 	}
 
 	/* Date and Time Functions */
@@ -3571,7 +3624,7 @@ namespace GLib {
 		[Version (since = "2.12")]
 		public void set_description (string description);
 		[Version (since = "2.12")]
-		public void get_description ();
+		public unowned string get_description ();
 		[Version (since = "2.12")]
 		public void set_translate_func (TranslateFunc func, DestroyNotify? destroy_notify);
 		[Version (since = "2.12")]
@@ -3795,7 +3848,7 @@ namespace GLib {
 		public string replace (string str, ssize_t string_len, int start_position, string replacement, RegexMatchFlags match_options = 0) throws RegexError;
 		public string replace_literal (string str, ssize_t string_len, int start_position, string replacement, RegexMatchFlags match_options = 0) throws RegexError;
 		public string replace_eval (string str, ssize_t string_len, int start_position, RegexMatchFlags match_options, RegexEvalCallback eval) throws RegexError;
-		public static bool check_replacement (out bool has_references = null) throws RegexError;
+		public static bool check_replacement (string replacement, out bool has_references = null) throws RegexError;
 	}
 
 	[Version (since = "2.14")]
@@ -3926,6 +3979,8 @@ namespace GLib {
 	public class KeyFile {
 		public KeyFile ();
 		public void set_list_separator (char separator);
+		[Version (since = "2.50")]
+		public bool load_from_bytes (Bytes bytes, KeyFileFlags @flags) throws KeyFileError;
 		public bool load_from_file (string file, KeyFileFlags @flags) throws KeyFileError, FileError;
 		[Version (since = "2.14")]
 		public bool load_from_dirs (string file, [CCode (array_length = false, array_null_terminated = true)] string[] search_dirs, out string full_path, KeyFileFlags @flags) throws KeyFileError, FileError;
@@ -4291,7 +4346,7 @@ namespace GLib {
 		public unowned List<G> find (G data);
 		public unowned List<G> find_custom (G data, CompareFunc<G> func);
 		[CCode (cname = "g_list_find_custom", simple_generics = true)]
-		public unowned List<G> search<T> (T data, SearchFunc<T,G> func);
+		public unowned List<G> search<T> (T data, SearchFunc<G,T> func);
 
 		public int position (List<G> llink);
 		public int index (G data);
@@ -4351,7 +4406,7 @@ namespace GLib {
 		public unowned SList<G> find (G data);
 		public unowned SList<G> find_custom (G data, CompareFunc<G> func);
 		[CCode (cname = "g_slist_find_custom", simple_generics = true)]
-		public unowned SList<G> search<T> (T data, SearchFunc<T,G> func);
+		public unowned SList<G> search<T> (T data, SearchFunc<G,T> func);
 
 		public int position (SList<G> llink);
 		public int index (G data);
@@ -4398,7 +4453,7 @@ namespace GLib {
 		[Version (since = "2.4")]
 		public unowned List<G> find_custom (G data, CompareFunc<G> func);
 		[CCode (cname = "g_queue_find_custom", simple_generics = true)]
-		public unowned List<G> search<T> (T data, SearchFunc<T,G> func);
+		public unowned List<G> search<T> (T data, SearchFunc<G,T> func);
 		[Version (since = "2.4")]
 		public void sort (CompareDataFunc<G> compare_func);
 		public void push_head (owned G data);
@@ -5162,6 +5217,7 @@ namespace GLib {
 		public const uint @2_44;
 		public const uint @2_46;
 		public const uint @2_48;
+		public const uint @2_50;
 
 		[CCode (cname = "glib_binary_age")]
 		public const uint binary_age;
@@ -5672,7 +5728,45 @@ namespace GLib {
 		MIAO,                   /* Plrd */
 		SHARADA,                /* Shrd */
 		SORA_SOMPENG,           /* Sora */
-		TAKRI                   /* Takr */
+		TAKRI,                  /* Takr */
+
+		/* Unicode 7.0 additions */
+		BASSA_VAH,              /* Bass */
+		CAUCASIAN_ALBANIAN,     /* Aghb */
+		DUPLOYAN,               /* Dupl */
+		ELBASAN,                /* Elba */
+		GRANTHA,                /* Gran */
+		KHOJKI,                 /* Khoj */
+		KHUDAWADI,              /* Sind */
+		LINEAR_A,               /* Lina */
+		MAHAJANI,               /* Mahj */
+		MANICHAEAN,             /* Manu */
+		MENDE_KIKAKUI,          /* Mend */
+		MODI,                   /* Modi */
+		MRO,                    /* Mroo */
+		NABATAEAN,              /* Nbat */
+		OLD_NORTH_ARABIAN,      /* Narb */
+		OLD_PERMIC,             /* Perm */
+		PAHAWH_HMONG,           /* Hmng */
+		PALMYRENE,              /* Palm */
+		PAU_CIN_HAU,            /* Pauc */
+		PSALTER_PAHLAVI,        /* Phlp */
+		SIDDHAM,                /* Sidd */
+		TIRHUTA,                /* Tirh */
+		WARANG_CITI,            /* Wara */
+
+		/* Unicode 8.0 additions */
+		AHOM,                   /* Ahom */
+		ANATOLIAN_HIEROGLYPHS,  /* Hluw */
+		HATRAN,                 /* Hatr */
+		MULTANI,                /* Mult */
+		OLD_HUNGARIAN,          /* Hung */
+		SIGNWRITING;            /* Sgnw */
+
+		[CCode (cname = "g_unicode_script_to_iso15924")]
+		public uint32 to_iso15924 ();
+		[CCode (cname = "g_unicode_script_from_iso15924")]
+		public static GLib.UnicodeScript from_iso15924 (uint32 iso15924);
 	}
 
 	[CCode (cname = "GUnicodeType", cprefix = "G_UNICODE_", has_type_id = false)]
