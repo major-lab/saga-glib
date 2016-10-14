@@ -276,7 +276,7 @@ namespace Saga.Local
 				// TODO: 'wall_time_limit'
 				Linux.setrlimit (Linux.RLIMIT_NPROC, Linux.RLimit () {rlim_cur = jd.number_of_processes});
 				if (jd.total_cpu_time != null)
-					Linux.setrlimit (Linux.RLIMIT_CPU, Linux.RLimit () {rlim_cur = jd.total_cpu_time});
+					Linux.setrlimit (Linux.RLIMIT_CPU, Linux.RLimit () {rlim_cur = jd.total_cpu_time / TimeSpan.SECOND});
 				if (jd.total_physical_memory != null)
 					Linux.setrlimit (Linux.RLIMIT_AS, Linux.RLimit () {rlim_cur = jd.total_physical_memory});
 			});
