@@ -56,6 +56,12 @@ namespace Saga.Local
 				_subprocess = _subprocess_launcher.spawnv (_args);
 				started     = new GLib.DateTime.now_utc ();
 				job_state (JobState.RUNNING);
+				if (_job_description.wall_time_limit != null) {
+					Timeout.add ((uint) (_job_description.wall_time_limit / TimeSpan.MILLISECOND), () => {
+						_subprocess.send_signal (ProcessSignal.KILL);
+						return false;
+					});
+				}
 			}
 			catch (GLib.Error err)
 			{
