@@ -273,12 +273,27 @@ namespace Saga.Local
 			// TODO: 'cleanup'
 
 			launcher.set_child_setup (() => {
-				// TODO: 'wall_time_limit'
-				Linux.setrlimit (Linux.RLIMIT_NPROC, Linux.RLimit () {rlim_cur = jd.number_of_processes});
 				if (jd.total_cpu_time != null)
-					Linux.setrlimit (Linux.RLIMIT_CPU, Linux.RLimit () {rlim_cur = jd.total_cpu_time / TimeSpan.SECOND});
+				{
+					Linux.RLimit rlimit_cpu;
+					Linux.getrlimit (Linux.RLIMIT_CPU, out rlimit_cpu);
+					rlimit_cpu.rlim_cur = int64.min (jd.total_cpu_time / TimeSpan.SECOND, rlimit_cpu.rlim_max);
+					if (Linux.setrlimit (Linux.RLIMIT_CPU, rlimit_cpu) == -1)
+					{
+						critical (strerror (errno));
+					}
+				}
+
 				if (jd.total_physical_memory != null)
-					Linux.setrlimit (Linux.RLIMIT_AS, Linux.RLimit () {rlim_cur = jd.total_physical_memory});
+				{
+					Linux.RLimit rlimit_as;
+					Linux.getrlimit (Linux.RLIMIT_AS, out rlimit_as);
+					rlimit_as.rlim_cur = int64.min (jd.total_physical_memory, rlimit_as.rlim_max);
+					if (Linux.setrlimit (Linux.RLIMIT_AS, rlimit_as) == -1)
+					{
+						critical (strerror (errno));
+					}
+				}
 			});
 
 			var job = new Job (get_session (), launcher, args, jd);
