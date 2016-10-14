@@ -25,6 +25,15 @@ public int main (string[] args)
 
 		try
 		{
+			assert (job == job_service.get_job (job.job_id));
+		}
+		catch (Saga.Error err)
+		{
+			assert_not_reached ();
+		}
+
+		try
+		{
 			job.run ();
 		}
 		catch (Saga.Error err)

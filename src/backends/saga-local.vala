@@ -283,20 +283,27 @@ namespace Saga.Local
 
 			var job = new Job (get_session (), launcher, args, jd);
 
-			_jobs.insert (job.get_id (), job);
+			_jobs.insert (job.job_id, job);
 
 			// cleanup done, failed or canceled jobs
 			job.job_state.connect ((state) => {
 				if (state > 2 && state < 6)
-					_jobs.remove (job.get_id ());
+					_jobs.remove (job.job_id);
 			});
 
 			return job;
 		}
 
-		public override Saga.Job get_job (string id)
+		public override Saga.Job get_job (string id) throws Error.DOES_NOT_EXIST
 		{
-			return _jobs[id];
+			if (_jobs.contains (id))
+			{
+				return _jobs.lookup (id);
+			}
+			else
+			{
+				throw new Error.DOES_NOT_EXIST ("Could not fetch the job '%s' from the local backend.", id);
+			}
 		}
 
 		public override string[] list ()
