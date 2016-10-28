@@ -256,13 +256,7 @@ namespace Saga.Local
 			foreach (var arg in jd.arguments)
 				args += arg;
 
-#if VALA_0_34
 			launcher.set_environ (jd.environment);
-#else
-			// cannot use 'set_environ' here, see https://bugzilla.gnome.org/show_bug.cgi?id=771307
-			if (jd.environment.length > 0)
-				critical ("Cannot use 'GLib.SubprocessLauncher.set_environ', the fix was introduced in Vala 0.34.");
-#endif
 
 			var wd = File.new_for_path (jd.working_directory);
 			if (jd.input != null)

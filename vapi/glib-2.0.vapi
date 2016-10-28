@@ -1039,7 +1039,7 @@ public class string {
 	[CCode (cname = "g_strconcat")]
 	public string concat (string string2, ...);
 	[CCode (cname = "g_strescape")]
-	public string escape (string exceptions);
+	public string escape (string? exceptions = null);
 	[CCode (cname = "g_strcompress")]
 	public string compress ();
 	[CCode (cname = "g_strsplit", array_length = false, array_null_terminated = true)]
@@ -3959,7 +3959,7 @@ namespace GLib {
 		public static string vprintf_escaped (string format, va_list args);
 		[Version (since = "2.16")]
 		[CCode (sentinel = "G_MARKUP_COLLECT_INVALID")]
-		public static bool collect_attributes (string element_name, string[] attribute_names, string[] attribute_values, ...) throws MarkupError;
+		public static bool collect_attributes (string element_name, [CCode (array_length = false, array_null_terminated = true)] string[] attribute_names, [CCode (array_length = false, array_null_terminated = true)] string[] attribute_values, ...) throws MarkupError;
 	}
 
 	/* Key-value file parser */
@@ -4187,7 +4187,7 @@ namespace GLib {
 		[Version (since = "2.38")]
 		public static unowned string get_filename (GLib.Test.FileType file_type, params string[] path_segments);
 		[Version (since = "2.38")]
-		public static void incomplete (string msg);
+		public static void incomplete (string? msg = null);
 		[Version (since = "2.36")]
 		public static bool initialized ();
 		[PrintfFormat]
@@ -4196,7 +4196,7 @@ namespace GLib {
 		[Version (since = "2.38")]
 		public static void set_nonfatal_assertions ();
 		[Version (since = "2.38")]
-		public static void skip (string msg);
+		public static void skip (string? msg = null);
 		[Version (since = "2.38")]
 		public static bool subprocess ();
 		[Version (since = "2.16")]
@@ -4216,7 +4216,7 @@ namespace GLib {
 		[Version (since = "2.16")]
 		public static bool trap_reached_timeout ();
 		[Version (since = "2.38")]
-		public static void trap_subprocess (string test_path, uint64 usec_timeout, TestSubprocessFlags test_flags);
+		public static void trap_subprocess (string? test_path, uint64 usec_timeout, TestSubprocessFlags test_flags);
 		[Version (since = "2.16")]
 		public static void trap_assert_passed ();
 		[Version (since = "2.16")]
@@ -5761,7 +5761,15 @@ namespace GLib {
 		HATRAN,                 /* Hatr */
 		MULTANI,                /* Mult */
 		OLD_HUNGARIAN,          /* Hung */
-		SIGNWRITING;            /* Sgnw */
+		SIGNWRITING,            /* Sgnw */
+
+		/* Unicode 9.0 additions */
+		ADLAM,                  /* Adlm */
+		BHAIKSUKI,              /* Bhks */
+		MARCHEN,                /* Marc */
+		NEWA,                   /* Newa */
+		OSAGE,                  /* Osge */
+		TANGUT;                 /* Tang */
 
 		[CCode (cname = "g_unicode_script_to_iso15924")]
 		public uint32 to_iso15924 ();
@@ -5844,7 +5852,10 @@ namespace GLib {
 		CLOSE_PARANTHESIS,
 		CONDITIONAL_JAPANESE_STARTER,
 		HEBREW_LETTER,
-		REGIONAL_INDICATOR
+		REGIONAL_INDICATOR,
+		EMOJI_BASE,
+		EMOJI_MODIFIER,
+		ZERO_WIDTH_JOINER
 	}
 
 	[CCode (cname = "GNormalizeMode", cprefix = "G_NORMALIZE_", has_type_id = false)]
