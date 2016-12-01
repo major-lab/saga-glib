@@ -69,9 +69,16 @@ namespace Saga.Local
 			}
 		}
 
-		public override void cancel (double timeout = 0.0)
+		public override void cancel (double timeout = 0.0) throws Error.INCORRECT_STATE
 		{
-			_subprocess.force_exit ();
+			if (_subprocess == null)
+			{
+				throw new Error.INCORRECT_STATE ("The job has to be running to be canceled.");
+			}
+			else
+			{
+				_subprocess.force_exit ();
+			}
 		}
 
 		private bool _waiting = false;
@@ -218,9 +225,16 @@ namespace Saga.Local
 			throw new Error.NOT_IMPLEMENTED ("");
 		}
 
-		public override void @signal (GLib.ProcessSignal signum)
+		public override void @signal (GLib.ProcessSignal signum) throws Error.INCORRECT_STATE
 		{
-			_subprocess.send_signal (signum);
+			if (_subprocess == null)
+			{
+				throw new Error.INCORRECT_STATE ("The job has to be running to be signaled.");
+			}
+			else
+			{
+				_subprocess.send_signal (signum);
+			}
 		}
 	}
 
