@@ -11,6 +11,8 @@ add_global_arguments(['-Wall',
                       '-Wno-unused'], language: 'c')
 endif
 
+meson.add_install_script('install.sh')
+
 glib = dependency('glib-2.0')
 gobject = dependency('gobject-2.0')
 gio = dependency('gio-2.0')
