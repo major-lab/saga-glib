@@ -19,13 +19,13 @@ before_install:
     - tar xvf gxml-0.12.0.tar.xz
     - cd gxml-0.12.0
     - ./configure --prefix=/usr && make && sudo make install && cd ..
-    - sudo pip3 install meson
+    - pip3 install meson
     - wget https://github.com/ninja-build/ninja/releases/download/v1.6.0/ninja-linux.zip
     - sudo unzip ninja-linux.zip -d /usr/local/bin
 
 before_script:
     - mkdir build
-    - meson.py . build
+    - meson . build
     - ninja -C build -v
 
 script:
