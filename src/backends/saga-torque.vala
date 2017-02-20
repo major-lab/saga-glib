@@ -911,7 +911,7 @@ namespace Saga.TORQUE
 		/**
 		 * Update monitored jobs from a 'qstat -x' output.
 		 */
-		private void update_monitored_jobs_from_gxml_doc (GXml.GDocument doc)
+		private void update_monitored_jobs_from_gxml_doc (GXml.Document doc)
 		{
 			if (doc.children_nodes.is_empty)
 				return;
@@ -1073,7 +1073,7 @@ namespace Saga.TORQUE
 		 * Only the 'Job_Id' attribute is considered, so the document should be
 		 * stripped at most.
 		 */
-		public static string[] job_identifiers_from_gxml_doc (GXml.GDocument doc)
+		public static string[] job_identifiers_from_gxml_doc (GXml.Document doc)
 		{
 			string[] job_identifiers = {};
 
