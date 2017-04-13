@@ -8,7 +8,7 @@ qstat = find_program('qstat')
 qsub = find_program('qsub')
 sh = find_program('sh')
 
-gxml = dependency('gxml-0.12')
+gxml = dependency('gxml-0.14')
 shared_library('saga-glib-torque', 'saga-torque.vala',
                dependencies: [glib, gobject, gio, saga, gxml, uuid],
                vala_args: ['--target-glib=2.40', '--vapidir=' + meson.current_source_dir () + '/../../vapi'],
