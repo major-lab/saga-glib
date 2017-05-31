@@ -1,3 +1,4 @@
-test('job service', executable('job-service-test', 'job-service-test.vala',
-                               dependencies: [glib, gobject, gio, saga]))
-test('url', executable('url-test', 'url-test.vala', dependencies: [glib, gobject, gio, saga]))
+foreach name : ['job-service', 'url']
+    test(name, executable(name + '-test', name + '-test.vala',
+                          dependencies: [glib_dep, gobject_dep, gio_dep, saga_glib_dep]))
+endforeach
