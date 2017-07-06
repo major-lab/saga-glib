@@ -18,7 +18,7 @@
 
 public class Saga.URL : GLib.Object, Saga.Object
 {
-	private static GLib.Regex url_regex = /^[\w+]+:\/\/((?<userinfo>.+)@)?(?:(?<host>[^:^?^#^\/]+)(:(?<port>\d+))?)?(?<path>\/[^?^#]*)?(\?(?<query>[^#]*))?(#(?<fragment>.*))?$/;
+	private static GLib.Regex url_regex = /^(?<scheme>.+):\/\/(?:(?<userinfo>.+?)@)?(?:(?<host>.+?)(?::(?<port>.+?))?)?(?<path>\/.*?)?(?:\?(?<query>.*?))?(?:#(?<fragment>.*))?$/;
 
 	public string  scheme   { get; set;                 }
 	public string? host     { get; set; default = null; }
@@ -93,16 +93,26 @@ public class Saga.URL : GLib.Object, Saga.Object
 		GLib.MatchInfo match_info;
 		if (url_regex.match (url, 0, out match_info))
 		{
-			scheme   = GLib.Uri.parse_scheme (url);
-			host     = match_info.fetch_named ("host") == null ? null : match_info.fetch_named ("host");
+			scheme = match_info.fetch_named ("scheme");
+			host   = match_info.fetch_named ("host") == null ? null : match_info.fetch_named ("host");
+
 			if (match_info.fetch_named ("port") == null)
 			{
 				port = null;
 			}
 			else
 			{
-				port = (uint) int.parse (match_info.fetch_named ("port"));
+				uint64 port_u64;
+				if (uint64.try_parse (match_info.fetch_named ("port"), out port_u64))
+				{
+					port = (uint) port_u64;
+				}
+				else
+				{
+					throw new Error.BAD_PARAMETER ("The specific port '%s' is invalid.", match_info.fetch_named ("port"));
+				}
 			}
+
 			fragment = match_info.fetch_named ("fragment") == null ? null : GLib.Uri.unescape_string (match_info.fetch_named ("fragment"));
 			path     = GLib.Uri.unescape_string (match_info.fetch_named ("path")) ?? "/";
 			query    = match_info.fetch_named ("query") == null ? null : GLib.Uri.unescape_string (match_info.fetch_named ("query"));
@@ -110,7 +120,7 @@ public class Saga.URL : GLib.Object, Saga.Object
 		}
 		else
 		{
-			throw new Error.BAD_PARAMETER ("The specified URL is not valid.");
+			throw new Error.BAD_PARAMETER ("The specified URL is invalid.");
 		}
 	}
 
