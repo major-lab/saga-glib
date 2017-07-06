@@ -20,7 +20,7 @@ before_install:
     - cd gxml-0.14.3
     - ./configure --prefix=/usr && make && sudo make install && cd ..
     - pip3 install meson
-    - wget https://github.com/ninja-build/ninja/releases/download/v1.6.0/ninja-linux.zip
+    - wget https://github.com/ninja-build/ninja/releases/download/v1.7.1/ninja-linux.zip
     - sudo unzip ninja-linux.zip -d /usr/local/bin
 
 before_script:
@@ -29,4 +29,5 @@ before_script:
     - ninja -C build -v
 
 script:
-    - ninja -C build -v test
+    - mesontest -v
+    - DESTDIR=$(mktemp -d) ninja -C build -v install
