@@ -51,7 +51,15 @@ namespace Saga.TORQUE
 
 		if (jd.spmd_variation != null)
 		{
-			warning ("TORQUE backend does not support 'spmd_variation'.");
+			if (jd.spmd_variation.has_prefix ("Array="))
+			{
+				args += "-t";
+				args += jd.spmd_variation.substring (6);
+			}
+			else
+			{
+				warning ("TORQUE backend does not support value '%s' for 'spmd_variation'.", jd.spmd_variation);
+			}
 		}
 
 		string[] resource_list = {};
