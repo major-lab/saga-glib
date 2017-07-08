@@ -20,20 +20,6 @@ public class Saga.SerialTaskContainer : Saga.TaskContainer
 {
 	private SList<Task> _tasks = new SList<Task> ();
 
-	construct
-	{
-		UUID.generate (_id);
-	}
-
-	private uint8 _id[16];
-
-	public override string get_id ()
-	{
-		char @out[37];
-		UUID.unparse (_id, @out);
-		return (string) @out;
-	}
-
 	public override string[] list_metrics ()
 	{
 		return {"task_container.state"};

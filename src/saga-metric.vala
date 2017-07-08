@@ -16,7 +16,7 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public class Saga.Metric : Saga.Object, GLib.Object
+public class Saga.Metric : Saga.Object
 {
 	public string     name        { get; construct; }
 	public string     description { get; construct; }
@@ -29,21 +29,7 @@ public class Saga.Metric : Saga.Object, GLib.Object
 		GLib.Object (name: name, description: description, mode: mode, unit: unit, @value: @value);
 	}
 
-	construct
-	{
-		UUID.generate (_id);
-	}
-
-	private uint8 _id[16];
-
-	public string get_id ()
-	{
-		char @out[37];
-		UUID.unparse (_id, @out);
-		return (string) @out;
-	}
-
-	public Session get_session () throws Error.DOES_NOT_EXIST
+	public override Session get_session () throws Error.DOES_NOT_EXIST
 	{
 		throw new Error.DOES_NOT_EXIST ("'Metric' objects do not have an attached session.");
 	}

@@ -16,7 +16,7 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public class Saga.Context : GLib.Object, Saga.Object
+public class Saga.Context : Saga.Object
 {
 	internal static int compare (Context a, Context b)
 	{
@@ -34,8 +34,6 @@ public class Saga.Context : GLib.Object, Saga.Object
 		       1024 * strcmp (a.remote_host, b.remote_host)         +
 		       2048 * (int) (a.remote_port - b.remote_port).clamp (-1, 1);
 	}
-
-	private uint8 _id[16];
 
 	/**
 	 * Note: Since 'type' is not an acceptable property name, so 'context_type'
@@ -61,19 +59,7 @@ public class Saga.Context : GLib.Object, Saga.Object
 		GLib.Object (context_type: type);
 	}
 
-	construct
-	{
-		UUID.generate (_id);
-	}
-
-	public string get_id ()
-	{
-		char @out[37];
-		UUID.unparse (_id, @out);
-		return (string) @out;
-	}
-
-	public Session get_session () throws Error.DOES_NOT_EXIST
+	public override Session get_session () throws Error.DOES_NOT_EXIST
 	{
 		throw new Error.DOES_NOT_EXIST ("'Context' objects do not have attached sessions.");
 	}

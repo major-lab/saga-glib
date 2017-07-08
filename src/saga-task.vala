@@ -16,13 +16,9 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public abstract class Saga.Task<T> : GLib.Object, Saga.Object, Saga.Monitorable
+public abstract class Saga.Task<T> : Saga.Object, Saga.Monitorable
 {
 	public signal void task_state (TaskState state);
-
-	public abstract string get_id ();
-
-	public abstract Session get_session ()                                         throws Error.DOES_NOT_EXIST;
 
 	public abstract string[] list_metrics ()                                       throws Error.NOT_IMPLEMENTED,
 	                                                                                      Error.PERMISSION_DENIED,

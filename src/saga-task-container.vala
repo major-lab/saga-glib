@@ -16,13 +16,11 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public abstract class Saga.TaskContainer : GLib.Object, Saga.Object, Saga.Monitorable
+public abstract class Saga.TaskContainer : Saga.Object, Saga.Monitorable
 {
 	public signal void task_container_state (string task_id);
 
-	public abstract string get_id ();
-
-	public Session get_session ()                                                  throws Error.DOES_NOT_EXIST
+	public override Session get_session ()                                         throws Error.DOES_NOT_EXIST
 	{
 		throw new Error.DOES_NOT_EXIST ("'TaskContainer' objects do not have attached session.");
 	}

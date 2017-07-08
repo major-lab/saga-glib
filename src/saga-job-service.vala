@@ -16,7 +16,7 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public abstract class Saga.JobService : GLib.Object, Saga.Object
+public abstract class Saga.JobService : Saga.Object
 {
 	public static new JobService @new (Session session, URL url)                     throws Error.NOT_IMPLEMENTED,
 	                                                                                        Error.BAD_PARAMETER,
@@ -42,23 +42,9 @@ public abstract class Saga.JobService : GLib.Object, Saga.Object
 		return job_service;
 	}
 
-	construct
-	{
-		UUID.generate (_id);
-	}
-
-	private uint8 _id[16];
-
-	public string get_id ()
-	{
-		char @out[37];
-		UUID.unparse (_id, @out);
-		return (string) @out;
-	}
-
 	private Session _session;
 
-	public Session get_session ()
+	public override Session get_session ()
 	{
 		return _session;
 	}

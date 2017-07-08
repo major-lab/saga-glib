@@ -16,8 +16,21 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public interface Saga.Object : GLib.Object
+public abstract class Saga.Object : GLib.Object
 {
-	public abstract string get_id ();
+	construct
+	{
+		UUID.generate (_id);
+	}
+
+	private uint8 _id[16];
+
+	public virtual string get_id ()
+	{
+		char @out[37];
+		UUID.unparse (_id, @out);
+		return (string) @out;
+	}
+
 	public abstract Session get_session () throws Error.DOES_NOT_EXIST;
 }

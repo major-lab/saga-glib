@@ -16,7 +16,7 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public class Saga.Session : GLib.Object, Saga.Object
+public class Saga.Session : Saga.Object
 {
 	private static Session? _default = null;
 
@@ -27,21 +27,7 @@ public class Saga.Session : GLib.Object, Saga.Object
 		return _default;
 	}
 
-	construct
-	{
-		UUID.generate (_id);
-	}
-
-	private uint8 _id[16];
-
-	public string get_id ()
-	{
-		char @out[37];
-		UUID.unparse (_id, @out);
-		return (string) @out;
-	}
-
-	public Session get_session ()                   throws Error.DOES_NOT_EXIST
+	public override Session get_session ()                   throws Error.DOES_NOT_EXIST
 	{
 		throw new Error.DOES_NOT_EXIST ("'Session' objects do not have an attached sessions.");
 	}

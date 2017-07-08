@@ -16,7 +16,7 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public class Saga.JobDescription : GLib.Object, Saga.Object
+public class Saga.JobDescription : Saga.Object
 {
 	public string          executable            { get; set; default = "";    }
 	public string[]        arguments             { get; set; default = {};    }
@@ -44,21 +44,7 @@ public class Saga.JobDescription : GLib.Object, Saga.Object
 	public string?         job_project           { get; set; default = null;  }
 	public URL[]           job_contact           { get; set; default = {};    }
 
-	construct
-	{
-		UUID.generate (_id);
-	}
-
-	private uint8 _id[16];
-
-	public string get_id ()
-	{
-		char @out[37];
-		UUID.unparse (_id, @out);
-		return (string) @out;
-	}
-
-	public Session get_session () throws Error.DOES_NOT_EXIST
+	public override Session get_session () throws Error.DOES_NOT_EXIST
 	{
 		throw new Error.DOES_NOT_EXIST ("'JobDescription' objects does not have an attached session.");
 	}

@@ -16,7 +16,7 @@
  * along with SAGA-GLib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public class Saga.URL : GLib.Object, Saga.Object
+public class Saga.URL : Saga.Object
 {
 	private static GLib.Regex url_regex = /^(?<scheme>.+):\/\/(?:(?<userinfo>.+?)@)?(?:(?<host>.+?)(?::(?<port>.+?))?)?(?<path>\/.*?)?(?:\?(?<query>.*?))?(?:#(?<fragment>.*))?$/;
 
@@ -34,21 +34,7 @@ public class Saga.URL : GLib.Object, Saga.Object
 		set_string (url);
 	}
 
-	construct
-	{
-		UUID.generate (_id);
-	}
-
-	private uint8 _id[16];
-
-	public string get_id ()
-	{
-		char @out[37];
-		UUID.unparse (_id, @out);
-		return (string) @out;
-	}
-
-	public Session get_session ()                           throws Error.DOES_NOT_EXIST
+	public override Session get_session ()                  throws Error.DOES_NOT_EXIST
 	{
 		throw new Error.DOES_NOT_EXIST ("'URI' objects do not have attached sessions.");
 	}
