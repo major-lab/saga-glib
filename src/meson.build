@@ -22,7 +22,7 @@ saga_glib_sources = [
     'saga-url.vala',
     'saga-wait-mode.vala']
 saga_glib_lib = library('saga-glib-1.0', saga_glib_sources, dependencies: [glib_dep, gobject_dep, gio_dep, gmodule_dep, uuid_dep],
-                        vala_header: 'saga-glib.h',
+                        vala_header: 'saga.h',
                         vala_gir: 'Saga-1.0.gir',
                         link_args: '-Wl,-rpath,@0@'.format(join_paths(meson.current_build_dir(), 'backends')),
                         install: true,
