@@ -39,6 +39,8 @@ namespace Saga.TORQUE
 	{
 		string[] args = {QSUB};
 
+		string[] resource_list = {};
+
 		// perform manual checkpoints
 		args += "-c";
 		args += "enabled";
@@ -51,23 +53,21 @@ namespace Saga.TORQUE
 
 		if (jd.spmd_variation != null)
 		{
-			if (jd.spmd_variation.has_prefix ("Array="))
-			{
-				args += "-t";
-				args += jd.spmd_variation.substring (6);
-			}
-			else
-			{
-				warning ("TORQUE backend does not support value '%s' for 'spmd_variation'.", jd.spmd_variation);
-			}
+			warning ("TORQUE backend does not support 'spmd_variation'.");
 		}
 
-		string[] resource_list = {};
+		if (jd.number_of_processes > 1)
+		{
+			args += "-t";
+			args += "1-%d".printf (jd.number_of_processes);
+		}
 
 		resource_list += "nodes=%d:ppn=%d".printf (jd.total_cpu_count, jd.processes_per_host);
 
 		if (jd.threads_per_process > 1)
+		{
 			warning ("TORQUE backend does not support 'threads_per_process'.");
+		}
 
 		if (jd.environment.length > 0)
 		{
@@ -235,10 +235,23 @@ namespace Saga.TORQUE
 
 		string[] resource_list = {};
 
+		if (jd.spmd_variation != null)
+		{
+			warning ("TORQUE backend does not support 'spmd_variation'.");
+		}
+
+		if (jd.number_of_processes > 1)
+		{
+			args += "-t";
+			args += "1-%d".printf (jd.number_of_processes);
+		}
+
 		resource_list += "nodes=%d:ppn=%d".printf (jd.total_cpu_count, jd.processes_per_host);
 
 		if (jd.threads_per_process > 1)
+		{
 			warning ("TORQUE backend does not support 'threads_per_process'.");
+		}
 
 		if (jd.input != null)
 		{

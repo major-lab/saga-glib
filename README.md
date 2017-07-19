@@ -70,12 +70,12 @@ public Saga.BackendTypes backend_init (GLib.TypeModule type_module)
 
 ### TORQUE
 
-The TORQUE backend supports an array-based SPMD variation that can be used to
+The TORQUE backend supports an array-based submission model that can be used to
 run multiple and similar jobs. Each job will have a `PBS_ARRAYID` environment
 variable set with the corresponding value from the range.
 
 ```vala
 var jd = new Job.Description ();
-jd.smpd_variation = "Array=0-4"; // creates 5 jobs (range is inclusive)
+jd.number_of_processes = 5; // will spawn 5 jobs with `PBS_ARRAYID` ranging from 1 to 5
 ```
 
