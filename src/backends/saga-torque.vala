@@ -56,13 +56,16 @@ namespace Saga.TORQUE
 			warning ("TORQUE backend does not support 'spmd_variation'.");
 		}
 
+		if (jd.total_cpu_count > 1)
+		{
+			warning ("TORQUE backend does not support 'total_cpu_count'.");
+		}
+
 		if (jd.number_of_processes > 1)
 		{
 			args += "-t";
 			args += "1-%d".printf (jd.number_of_processes);
 		}
-
-		resource_list += "nodes=%d:ppn=%d".printf (jd.total_cpu_count, jd.processes_per_host);
 
 		if (jd.threads_per_process > 1)
 		{
@@ -175,15 +178,20 @@ namespace Saga.TORQUE
 		if (jd.operating_system_type != null)
 			resource_list += "opsys=%s".printf (jd.operating_system_type);
 
+		if (jd.candidate_hosts.length > 0)
+		{
+			resource_list += "nodes=%s:ppn=%d".printf (string.joinv ("+", jd.candidate_hosts), jd.processes_per_host);
+		}
+		else
+		{
+			resource_list += "nodes=1:ppn=%d".printf (jd.processes_per_host);
+		}
+
 		if (resource_list.length > 0)
 		{
 			args += "-l";
 			args += string.joinv (",", resource_list);
 		}
-
-		// TODO: 'candidate_hosts'
-		if (jd.candidate_hosts.length > 0)
-			warning ("The 'candidate_hosts' option is not implemented and was ignored.");
 
 		args += "-q";
 		if (jd.queue != null)
@@ -240,13 +248,16 @@ namespace Saga.TORQUE
 			warning ("TORQUE backend does not support 'spmd_variation'.");
 		}
 
+		if (jd.total_cpu_count > 1)
+		{
+			warning ("TORQUE backend does not support 'threads_per_process'.");
+		}
+
 		if (jd.number_of_processes > 1)
 		{
 			args += "-t";
 			args += "1-%d".printf (jd.number_of_processes);
 		}
-
-		resource_list += "nodes=%d:ppn=%d".printf (jd.total_cpu_count, jd.processes_per_host);
 
 		if (jd.threads_per_process > 1)
 		{
@@ -343,15 +354,20 @@ namespace Saga.TORQUE
 		if (jd.operating_system_type != null)
 			resource_list += "opsys=%s".printf (jd.operating_system_type);
 
+		if (jd.candidate_hosts.length > 0)
+		{
+			resource_list += "nodes=%s:ppn=%d".printf (string.joinv ("+", jd.candidate_hosts), jd.processes_per_host);
+		}
+		else
+		{
+			resource_list += "nodes=1:ppn=%d".printf (jd.processes_per_host);
+		}
+
 		if (resource_list.length > 0)
 		{
 			args += "-l";
 			args += string.joinv (",", resource_list);
 		}
-
-		// TODO: 'candidate_hosts'
-		if (jd.candidate_hosts.length > 0)
-			warning ("The 'candidate_hosts' option is not implemented and was ignored.");
 
 		if (jd.job_project != null)
 		{
