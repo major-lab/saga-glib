@@ -58,7 +58,7 @@ namespace Saga.TORQUE
 
 		if (jd.total_cpu_count > 1)
 		{
-			warning ("TORQUE backend does not support 'total_cpu_count'.");
+			resource_list += "procs=%d".printf (jd.total_cpu_count);
 		}
 
 		if (jd.number_of_processes > 1)
@@ -250,7 +250,7 @@ namespace Saga.TORQUE
 
 		if (jd.total_cpu_count > 1)
 		{
-			warning ("TORQUE backend does not support 'threads_per_process'.");
+			resource_list += "procs=%d".printf (jd.total_cpu_count);
 		}
 
 		if (jd.number_of_processes > 1)
