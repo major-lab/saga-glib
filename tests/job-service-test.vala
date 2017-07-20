@@ -72,8 +72,32 @@ public int main (string[] args)
 		assert (0 == job.get_result ());
 	});
 
-	Test.add_func ("/job_service/torque", () => {
-		var job_service = JobService.@new (new Session (), new Saga.URL ("torque://localhost/"));
+	Test.add_func ("/job_service/torque/job-array", () => {
+		if (Environment.get_variable ("SAGA_GLIB_JOB_SERVICE_TORQUE_URL") == null)
+		{
+			Test.skip ("Set the 'SAGA_GLIB_JOB_SERVICE_TORQUE_URL' environment variable to run this test.");
+			return;
+		}
+
+		var job_service = JobService.@new (new Session (),
+		                                   new Saga.URL (Environment.get_variable ("SAGA_GLIB_JOB_SERVICE_TORQUE_URL")));
+
+		var jd = new JobDescription ();
+
+		jd.executable = "true";
+		jd.number_of_processes = 8;
+
+		try
+		{
+			var job = job_service.create_job (jd);
+			job.run ();
+			assert (null == job.get_result ());
+			assert (TaskState.DONE == job.get_state ());
+		}
+		catch (Saga.Error err)
+		{
+			assert_not_reached ();
+		}
 	});
 
 	return Test.run ();

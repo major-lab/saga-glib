@@ -614,31 +614,24 @@ namespace Saga.TORQUE
 				throw new Error.NO_SUCCESS (err.message);
 			}
 
-			var data = doc.children_nodes.first ();
+			// for array identifiers, 'qstat' output everything, so we have to lookup the 'Job_Id'
+			GXml.Node? job_node = null;
+			foreach (var node in doc.children_nodes.first ().children_nodes)
+			{
+				if (node.@get ("Job_Id").@value == job_id)
+				{
+					job_node = node;
+				}
+			}
 
-			if (data.children_nodes.is_empty)
+			if (job_node == null)
 			{
 				throw new Error.NO_SUCCESS ("Could not retreive the state of task '%s' from the TORQUE backend.", job_id);
 			}
 
-			update_from_gxml_node (data.children_nodes.first ());
+			update_from_gxml_node (job_node);
 
-			switch (data.children_nodes.first ().@get ("job_state").@value)
-			{
-				case "H":
-				case "Q":
-				case "T":
-				case "W":
-					return TaskState.NEW;
-				case "R":
-				case "S":
-					return TaskState.RUNNING;
-				case "C":
-				case "E":
-					return exit_code == 0 ? TaskState.DONE : TaskState.FAILED;
-				default:
-					throw new Error.NO_SUCCESS ("Unexpected value for 'job_state'.");
-			}
+			return last_job_state == JobState.SUSPENDED ? TaskState.RUNNING : (TaskState) last_job_state;
 		}
 
 		public override void permissions_allow (string id, Permission perm) throws Error.NOT_IMPLEMENTED
@@ -883,6 +876,8 @@ namespace Saga.TORQUE
 					current_job_state = JobState.SUSPENDED;
 					break;
 				case "C":
+					current_job_state = JobState.DONE;
+					break;
 				case "E":
 					if (term_sig == 9 || term_sig == 15)
 					{
@@ -890,7 +885,7 @@ namespace Saga.TORQUE
 					}
 					else
 					{
-						current_job_state = exit_code == 0 ? JobState.DONE : JobState.FAILED;
+						current_job_state = JobState.FAILED;
 					}
 					break;
 				default:
