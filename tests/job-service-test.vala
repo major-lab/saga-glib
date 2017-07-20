@@ -91,7 +91,7 @@ public int main (string[] args)
 		{
 			var job = job_service.create_job (jd);
 			job.run ();
-			assert (null == job.get_result ());
+			assert (0 == job.get_result ());
 			assert (TaskState.DONE == job.get_state ());
 		}
 		catch (Saga.Error err)
