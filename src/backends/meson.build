@@ -8,7 +8,14 @@ qstat_bin = find_program('qstat')
 qsub_bin = find_program('qsub')
 sh_bin = find_program('sh')
 
-gxml_dep = dependency('gxml-0.14')
+gxml_dep = dependency('gxml-0.14', required: false)
+if not gxml_dep.found()
+    gee_dep = dependency('gee-0.8')
+    libxml_dep = dependency('libxml-2.0')
+    gxml_dep = declare_dependency(include_directories: subproject('gxml').get_variable('inc_rooth'),
+                                  link_with: subproject('gxml').get_variable('lib'),
+                                  dependencies: [gee_dep, libxml_dep])
+endif
 shared_module('saga-glib-torque', 'saga-torque.vala',
                dependencies: [glib_dep, gobject_dep, gio_dep, saga_glib_dep, gxml_dep, uuid_dep],
                c_args: ['-DSAGA_TORQUE_QALTER="@0@"'.format(qalter_bin.path()),
