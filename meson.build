@@ -1,6 +1,6 @@
 project('SAGA-GLib', 'c', 'vala',
         version: '1.0.0',
-        meson_version: '>=0.40')
+        meson_version: '>=0.42')
 
 add_project_arguments(['--target-glib=2.40',
                        '--vapidir', join_paths(meson.current_source_dir(), 'vapi')], language: 'vala')

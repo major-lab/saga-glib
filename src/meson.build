@@ -24,7 +24,7 @@ saga_glib_sources = [
 saga_glib_lib = library('saga-glib-1.0', saga_glib_sources, dependencies: [glib_dep, gobject_dep, gio_dep, gmodule_dep, uuid_dep],
                         vala_header: 'saga.h',
                         vala_gir: 'Saga-1.0.gir',
-                        link_args: '-Wl,-rpath,@0@'.format(join_paths(meson.current_build_dir(), 'backends')),
+                        build_rpath: join_paths(meson.current_build_dir(), 'backends'),
                         install: true,
                         install_dir: [true, 'include/saga-glib-1.0', true, get_option('with_introspection')],
                         install_rpath: join_paths(get_option('prefix'), get_option('libdir'), 'saga-glib-1.0/backends'))
