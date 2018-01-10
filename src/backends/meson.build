@@ -8,7 +8,7 @@ qstat_bin = find_program('qstat')
 qsub_bin = find_program('qsub')
 sh_bin = find_program('sh')
 
-gxml_dep = dependency('gxml-0.14', required: false)
+gxml_dep = dependency('gxml-0.16', required: false)
 if not gxml_dep.found()
     gee_dep = dependency('gee-0.8')
     libxml_dep = dependency('libxml-2.0')
