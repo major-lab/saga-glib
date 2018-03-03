@@ -1,4 +1,4 @@
 [wrap-git]
 directory=gxml
-url=git://git.gnome.org/gxml
-revision=0.16.0
+url=https://gitlab.gnome.org/GNOME/gxml.git
+revision=0.16.2
